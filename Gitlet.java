@@ -4,5 +4,6 @@ public class Gitlet
   {
 	  System.out.println("Hello");
 	  System.out.println("Hi");
+	  System.out.println("TEST");
   }
 }
