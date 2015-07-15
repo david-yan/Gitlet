@@ -17,4 +17,8 @@ public class Gitlet
 	{
 		System.out.println("David");
 	}
+	
+	public static void Quang() {
+		System.out.println("test");
+	}
 }
