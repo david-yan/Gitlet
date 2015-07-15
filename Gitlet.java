@@ -6,5 +6,10 @@ public class Gitlet
 		System.out.println("Hi");
 		System.out.println("TEST");
 		System.out.println("Github is working correctly.");
+		
+	}
+	
+	public void Test(){
+		System.out.println("Test");
 	}
 }
