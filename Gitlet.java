@@ -7,4 +7,8 @@ public class Gitlet
 		System.out.println("TEST");
 		System.out.println("Github is working correctly.");
 	}
+	public static void David()
+	{
+		System.out.println("David");
+	}
 }
