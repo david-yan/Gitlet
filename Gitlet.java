@@ -4,7 +4,7 @@ public class Gitlet implements Serializable
 {
 	public Gitlet()
 	{
-		File gitletDir = new File(".gilet");
+		File gitletDir = new File(".gitlet");
 		if (!gitletDir.exists())
 		{
 			gitletDir.mkdir();
