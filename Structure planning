@@ -15,7 +15,7 @@ Gitlet.java
 
 GitletNoded.java
 - represents a backup from commit
-- stores location of backup, reference to previous GitletNode, commit message
+- stores location of backup, reference to previous GitletNode, commit message, commit ID
 - implements a toString method, as well as get methods for the previous GiletNodes and the location of the backup
 
 Gitlet main
