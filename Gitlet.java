@@ -10,7 +10,7 @@ public class Gitlet implements Serializable {
 	}
 
 	public void commit(String message) {
-
+		System.out.println("test");
 	}
 
 	public static void main(String[] args) {
