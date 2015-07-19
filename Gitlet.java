@@ -19,8 +19,13 @@ public class Gitlet implements Serializable
 	private HashSet<String>				untrack;
 	private String						currentBranch;
 
+<<<<<<< HEAD
 	public Gitlet()
 	{
+=======
+	
+	public Gitlet() {
+>>>>>>> refs/remotes/origin/quang
 		File gitletDir = new File(".gitlet");
 		numberOfCommit = 0;
 		untrack = new HashSet<String>();
@@ -299,9 +304,15 @@ public class Gitlet implements Serializable
 			if (!gitletExists)
 			{
 				gitlet = new Gitlet();
+<<<<<<< HEAD
 			} else
 			{
 				System.err.println("A gitlet version control system already exists in the current directory.");
+=======
+			} else {
+				System.out
+						.println("A gitlet version control system already exists in the current directory.");
+>>>>>>> refs/remotes/origin/quang
 			}
 		}
 		try
@@ -318,10 +329,15 @@ public class Gitlet implements Serializable
 			out.writeObject(gitlet);
 			out.close();
 			fileOut.close();
+<<<<<<< HEAD
 
 			// System.out.println("Gitlet written in file.");
 		} catch (IOException e)
 		{
+=======
+			//System.out.println("Gitlet written in file.");
+		} catch (IOException e) {
+>>>>>>> refs/remotes/origin/quang
 			e.printStackTrace();
 		}
 	}
