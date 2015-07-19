@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 
 public class GitletNode
 {
@@ -48,6 +47,4 @@ public class GitletNode implements Serializable {
 	public File getContents() {
 		return contents;
 	}
->>>>>>> branch 'quang' of https://github.com/siddharthseth/gitlet-cs61bl.git
-
 }
