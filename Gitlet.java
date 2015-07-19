@@ -16,6 +16,7 @@ public class Gitlet implements Serializable {
 	private File stagingDir = new File(".gitlet/staging");
 	private HashSet<String> untrack;
 
+	
 	public Gitlet() {
 		File gitletDir = new File(".gitlet");
 		numberOfCommit = 0;
@@ -269,7 +270,7 @@ public class Gitlet implements Serializable {
 			if (!gitletExists) {
 				gitlet = new Gitlet();
 			} else {
-				System.err
+				System.out
 						.println("A gitlet version control system already exists in the current directory.");
 			}
 		}
@@ -285,7 +286,7 @@ public class Gitlet implements Serializable {
 			out.writeObject(gitlet);
 			out.close();
 			fileOut.close();
-			System.out.println("Gitlet written in file.");
+			//System.out.println("Gitlet written in file.");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

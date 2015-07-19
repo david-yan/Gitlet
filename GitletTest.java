@@ -13,8 +13,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 /**
  * Class that provides JUnit tests for Gitlet, as well as a couple of utility
@@ -37,9 +40,16 @@ import org.junit.Test;
 public class GitletTest {
 	private static final String GITLET_DIR = ".gitlet/";
 	private static final String TESTING_DIR = "test_files/";
+	private ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+	private ByteArrayOutputStream errContent = new ByteArrayOutputStream();
 
 	/* matches either unix/mac or windows line separators */
 	private static final String LINE_SEPARATOR = "\r\n|[\r\n]";
+	
+	
+	/* Rule for testing exceptions*/
+	@Rule
+	  public final ExpectedException exception = ExpectedException.none();
 
 	/**
 	 * Deletes existing gitlet system, resets the folder that stores files used
@@ -68,7 +78,25 @@ public class GitletTest {
 		}
 		f.mkdirs();
 	}
+	
+	/**
+	 * Sets up streams to test System.out and System.err
+	 */
+	@Before
+	public void setUpStreams() {
+	    System.setOut(new PrintStream(outContent));
+	    System.setErr(new PrintStream(errContent));
+	}
 
+	/**
+	 * Closes streams for System.out and System.err
+	 */
+	@After
+	public void cleanUpStreams() {
+	    System.setOut(null);
+	    System.setErr(null);
+	}
+	
 	/**
 	 * Tests that init creates a .gitlet directory. Does NOT test that init
 	 * creates an initial commit, which is the other functionality of init.
@@ -78,6 +106,62 @@ public class GitletTest {
 		gitlet("init");
 		File f = new File(GITLET_DIR);
 		assertTrue(f.exists());
+	}
+	
+	/**
+	 * Tests to make sure that init does not create another .gitlet directory
+	 * if there is already a .gitlet directory. Should print error message.
+	 */
+	@Test
+	public void testSecondInitialize(){
+		gitlet("init");
+		File f = new File(GITLET_DIR);
+		assertTrue(f.exists());
+		//should succeed in creating first directory
+
+		outContent = new ByteArrayOutputStream();
+		System.setOut(new PrintStream(outContent));
+		gitlet("init");
+		assertEquals("A gitlet version control system already exists in the current directory.", outContent.toString());
+	}
+	
+	/**
+	 * Tests to make sure that init creates an initial blank commit
+	 */
+	@Test
+	public void testInitialCommit(){
+		gitlet("init");
+		File f = new File(GITLET_DIR+"0/");
+		assertTrue(f.exists());
+		String commitMessage1 = "initial commit";
+		String logOutput = gitlet("log");
+		assertArrayEquals(new String[] {commitMessage1}, extractCommitMessages(logOutput));
+	}
+	/**
+	 * Tests to make sure files are added to staging area
+	 */
+	@Test
+	public void testBasicAdd(){
+		gitlet("init");
+		String testFileName = TESTING_DIR + "test.txt";
+		String text = "Hello world.";
+		createFile(testFileName, text);
+		gitlet("add", testFileName);
+		File f = new File(".gitlet/staging/test.txt");
+		assertTrue(f.exists());
+	}
+	
+	@Test 
+	public void testBasicCommit(){
+		gitlet("init");
+		String testFileName = TESTING_DIR + "test.txt";
+		String text = "Hello world.";
+		createFile(testFileName, text);
+		gitlet("add", testFileName);
+		gitlet("commit", "added hello world");
+		File f = new File(".gitlet/1/test.txt");
+		assertTrue(f.exists());
+		
 	}
 
 	/**
