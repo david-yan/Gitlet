@@ -11,27 +11,29 @@ public class Gitlet implements Serializable
 {
 
 	private int							numberOfCommit;
-	private GitletNode					currentBranchHead;
 	// keep track of branches
 	// key is the name of the branch
 	// value is possibly the LinkedList of GitletNodes
 	private HashMap<String, GitletNode>	branches;
 	private File						stagingDir	= new File(".gitlet/staging");
+	private File						commitDir	= new File(".gitlet/commits");
 	private HashSet<String>				untrack;
+	private String						currentBranch;
 
 	public Gitlet()
 	{
 		File gitletDir = new File(".gitlet");
 		numberOfCommit = 0;
 		untrack = new HashSet<String>();
+		branches = new HashMap<String, GitletNode>();
+		currentBranch = "master";
 		if (!gitletDir.exists())
 		{
 			gitletDir.mkdir();
 			stagingDir.mkdir();
+			commitDir.mkdir();
 			commit("initial commit");
 		}
-		new File(".gitlet//staging").mkdir();
-		new File(".gitlet//old_files").mkdir();
 	}
 	public void commit(String message)
 	{
@@ -42,11 +44,10 @@ public class Gitlet implements Serializable
 			return;
 		}
 
-		GitletNode commitNode = new GitletNode(message, numberOfCommit, currentBranchHead);
+		GitletNode commitNode = new GitletNode(message, numberOfCommit, branches.get(currentBranch));
 
 		if (numberOfCommit > 0)
 		{
-
 			File newCommit = commitNode.getContents();
 
 			try
@@ -73,9 +74,9 @@ public class Gitlet implements Serializable
 			}
 		}
 
-		currentBranchHead = commitNode;
 		numberOfCommit++;
 
+		branches.put(currentBranch, commitNode);
 		// System.out.println("Commit successful");
 	}
 
@@ -94,7 +95,7 @@ public class Gitlet implements Serializable
 	 */
 	private void copyToNewCommit(File newCommit) throws IOException
 	{
-		File pathOfCurrentCommit = currentBranchHead.getContents();
+		File pathOfCurrentCommit = branches.get(currentBranch).getContents();
 		for (File file : pathOfCurrentCommit.listFiles())
 		{
 			if (!file.isDirectory() && !inStagingDir(stagingDir, file.getName()) && !untrack.contains(file.getName()))
@@ -107,7 +108,7 @@ public class Gitlet implements Serializable
 
 	public void log()
 	{
-		currentBranchHead.printLog();
+		branches.get(currentBranch).printLog();
 	}
 
 	// should only add files, not folders / directory
@@ -164,7 +165,7 @@ public class Gitlet implements Serializable
 		// System.out.println(!inStagingDir(stagingDir, fileName));
 		// System.out.println(!inHeadCommit(currentBranchHead.getContents(),
 		// fileName));
-		if (!inStagingDir(stagingDir, fileName) && !inHeadCommit(currentBranchHead.getContents(), fileName))
+		if (!inStagingDir(stagingDir, fileName) && !inHeadCommit(branches.get(currentBranch).getContents(), fileName))
 		{
 			System.err.println("No reason to remove the file.");
 			return;
