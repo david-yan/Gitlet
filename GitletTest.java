@@ -15,6 +15,7 @@ import java.nio.file.Paths;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.After;
 
 /**
  * Class that provides JUnit tests for Gitlet, as well as a couple of utility
@@ -64,9 +65,6 @@ public class GitletTest
 		}
 		f.mkdirs();
 	}
-
-<<<<<<< HEAD
-=======
 	private final ByteArrayOutputStream	outContent	= new ByteArrayOutputStream();
 	private final ByteArrayOutputStream	errContent	= new ByteArrayOutputStream();
 
@@ -84,7 +82,6 @@ public class GitletTest
 		System.setErr(null);
 	}
 
->>>>>>> refs/remotes/origin/master
 	/**
 //	 * Tests that init creates a .gitlet directory. Does NOT test that init
 	 * creates an initial commit, which is the other functionality of init.
@@ -95,14 +92,11 @@ public class GitletTest
 		gitlet("init");
 		File f = new File(GITLET_DIR);
 		assertTrue(f.exists());
-<<<<<<< HEAD
-=======
 
 		assertTrue(new File(GITLET_DIR + 0).exists());
 
 		gitlet("init");
 		assertEquals("A gitlet version control system already exists in the current directory.", errContent.toString());
->>>>>>> refs/remotes/origin/master
 	}
 
 	/**

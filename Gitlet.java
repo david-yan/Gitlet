@@ -1,9 +1,5 @@
 import java.io.*;
-<<<<<<< HEAD
-=======
-import java.nio.file.Files;
 
->>>>>>> refs/remotes/origin/master
 import java.nio.channels.FileChannel;
 import java.nio.file.*;
 import java.util.*;
@@ -79,29 +75,15 @@ public class Gitlet implements Serializable
 
 		numberOfCommit++;
 
-<<<<<<< HEAD
-		System.out.println("Commit successful");
-=======
 		branches.put(currentBranch, commitNode);
 		// System.out.println("Commit successful");
->>>>>>> refs/remotes/origin/master
 	}
 
-<<<<<<< HEAD
-	/*
-	 * @author
-	 * "http://stackoverflow.com/questions/22356585/moving-files-from-one-directory-to-another-with-java-nio"
-	 * Files.move won't detect that the destination is a directory; therefore,
-	 * we have to construct full destination path, file by file
-	 */
-	private void moveFromStagingToNewCommit(File newCommit) throws IOException {
-		for (File file : stagingDir.listFiles()) {
-=======
+
 	private void moveFromStagingToNewCommit(File newCommit) throws IOException
 	{
 		for (File file : stagingDir.listFiles())
 		{
->>>>>>> refs/remotes/origin/master
 			File newCommitPath = new File(newCommit, file.getName());
 			Files.move(file.toPath(), newCommitPath.toPath(), REPLACE_EXISTING);
 		}
@@ -246,18 +228,8 @@ public class Gitlet implements Serializable
 		return false;
 	}
 
-<<<<<<< HEAD
-	/*
-	 * @author
-	 * "http://examples.javacodegeeks.com/core-java/io/file/4-ways-to-copy-file-in-java/"
-	 * make a copy of source and move it to dest
-	 */
-	private static void copyFileUsingFileChannels(File source, File dest)
-			throws IOException {
-=======
 	private static void copyFileUsingFileChannels(File source, File dest) throws IOException
 	{
->>>>>>> refs/remotes/origin/master
 		FileChannel inputChannel = null;
 		FileChannel outputChannel = null;
 		try
@@ -346,14 +318,10 @@ public class Gitlet implements Serializable
 			out.writeObject(gitlet);
 			out.close();
 			fileOut.close();
-<<<<<<< HEAD
-			System.out.println("Gitlet written in file.");
-		} catch (IOException e) {
-=======
+
 			// System.out.println("Gitlet written in file.");
 		} catch (IOException e)
 		{
->>>>>>> refs/remotes/origin/master
 			e.printStackTrace();
 		}
 	}
