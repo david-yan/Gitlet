@@ -67,7 +67,7 @@ public class Gitlet implements Serializable {
 		currentBranchHead = commitNode;
 		numberOfCommit++;
 
-		System.out.println("Commit successful");
+//		System.out.println("Commit successful");
 	}
 
 	/*
@@ -285,7 +285,7 @@ public class Gitlet implements Serializable {
 			out.writeObject(gitlet);
 			out.close();
 			fileOut.close();
-			System.out.println("Gitlet written in file.");
+//			System.out.println("Gitlet written in file.");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

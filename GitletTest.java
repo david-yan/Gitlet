@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -69,6 +70,21 @@ public class GitletTest {
 		f.mkdirs();
 	}
 
+	private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+	private final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
+
+	@Before
+	public void setUpStreams() {
+		System.setOut(new PrintStream(outContent));
+		System.setErr(new PrintStream(errContent));
+	}
+
+	@After
+	public void cleanUpStreams() {
+		System.setOut(null);
+		System.setErr(null);
+	}
+
 	/**
 	 * Tests that init creates a .gitlet directory. Does NOT test that init
 	 * creates an initial commit, which is the other functionality of init.
@@ -78,6 +94,13 @@ public class GitletTest {
 		gitlet("init");
 		File f = new File(GITLET_DIR);
 		assertTrue(f.exists());
+
+		assertTrue(new File(GITLET_DIR + 0).exists());
+
+		gitlet("init");
+		assertEquals(
+				"A gitlet version control system already exists in the current directory.",
+				errContent.toString());
 	}
 
 	/**
