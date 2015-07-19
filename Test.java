@@ -39,7 +39,7 @@ public class Test implements Serializable
 			try
 			{
 				Test test;
-				FileInputStream fileIn = new FileInputStream(new File("test", "Test.ser"));
+				FileInputStream fileIn = new FileInputStream(new File("test//Test.ser"));
 				ObjectInputStream in = new ObjectInputStream(fileIn);
 				test = (Test) in.readObject();
 				in.close();
@@ -55,7 +55,7 @@ public class Test implements Serializable
 			try
 			{
 				Test test = new Test(args[1]);
-				FileOutputStream fileOut = new FileOutputStream(new File("test", "Test.ser"));
+				FileOutputStream fileOut = new FileOutputStream(new File("test//Test.ser"));
 				ObjectOutputStream out = new ObjectOutputStream(fileOut);
 				out.writeObject(test);
 				out.close();
@@ -65,6 +65,10 @@ public class Test implements Serializable
 			{
 				e.printStackTrace();;
 			}
+		}
+		if (args[0].equals("test"))
+		{
+			new File("test//staging").mkdir();
 		}
 	}
 }
