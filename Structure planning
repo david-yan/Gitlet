@@ -1,0 +1,22 @@
+Two classes with a main method:
+Gitlet.java
+GitletNode.java
+main of Gitlet.java
+
+Directory:
+.gitlet
+ - staging folder
+ - Gitlet.ser
+ - old files
+ 
+Gitlet.java
+- stores location of staging folder, references to all of the most recent GitletNodes, and references of all the head nodes
+- implements all methods specified in project
+
+GitletNoded.java
+- represents a backup from commit
+- stores location of backup, reference to previous GitletNode, commit message, commit ID
+- implements a toString method, as well as get methods for the previous GiletNodes and the location of the backup
+
+Gitlet main
+- handles all input
