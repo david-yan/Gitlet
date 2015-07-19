@@ -1,7 +1,3 @@
-
-public class GitletNode
-{
-=======
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.io.*;
@@ -47,4 +43,5 @@ public class GitletNode implements Serializable {
 	public File getContents() {
 		return contents;
 	}
+
 }

@@ -1,4 +1,4 @@
-
+import java.io.*;
 import java.nio.channels.FileChannel;
 import java.nio.file.*;
 import java.util.*;
@@ -67,9 +67,15 @@ public class Gitlet implements Serializable {
 		currentBranchHead = commitNode;
 		numberOfCommit++;
 
-//		System.out.println("Commit successful");
+		System.out.println("Commit successful");
 	}
 
+	/*
+	 * @author
+	 * "http://stackoverflow.com/questions/22356585/moving-files-from-one-directory-to-another-with-java-nio"
+	 * Files.move won't detect that the destination is a directory; therefore,
+	 * we have to construct full destination path, file by file
+	 */
 	private void moveFromStagingToNewCommit(File newCommit) throws IOException {
 		for (File file : stagingDir.listFiles()) {
 			File newCommitPath = new File(newCommit, file.getName());
@@ -197,6 +203,11 @@ public class Gitlet implements Serializable {
 		return false;
 	}
 
+	/*
+	 * @author
+	 * "http://examples.javacodegeeks.com/core-java/io/file/4-ways-to-copy-file-in-java/"
+	 * make a copy of source and move it to dest
+	 */
 	private static void copyFileUsingFileChannels(File source, File dest)
 			throws IOException {
 		FileChannel inputChannel = null;
@@ -274,7 +285,7 @@ public class Gitlet implements Serializable {
 			out.writeObject(gitlet);
 			out.close();
 			fileOut.close();
-//			System.out.println("Gitlet written in file.");
+			System.out.println("Gitlet written in file.");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
