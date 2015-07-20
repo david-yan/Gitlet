@@ -42,11 +42,6 @@ public class GitletNode implements Serializable
 		contents.mkdir();
 	}
 
-	public GitletNode getPrevCommit()
-	{
-		return prevCommit;
-	}
-
 	public File getContents()
 	{
 		return contents;
