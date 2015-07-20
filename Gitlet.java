@@ -191,6 +191,58 @@ public class Gitlet implements Serializable
 		}
 
 	}
+	
+	public void status()
+	{
+		System.out.println("=== Branches ===");
+		System.out.println("*" + currentBranch);
+		for(String branch: branches.keySet())
+		{
+			if(!branch.equals(currentBranch))
+				System.out.println(branch);
+		}
+		System.out.println();
+		
+		System.out.println("=== Staged Files ===");
+		for(File staged: stagingDir.listFiles())
+		{
+			System.out.println(staged.getPath());
+		}
+		System.out.println();
+		
+		System.out.println("=== Files Marked for Untracking");
+		for(String untracked: untrack)
+		{
+			System.out.println(untracked);
+		}
+	}
+	
+	public void checkout(String name){
+		if(branches.containsKey(name)){
+			if(name.equals(currentBranch)){
+				System.err.println("No need to checkout the current branch.");
+			} else {
+				
+				currentBranch = name;
+			}
+		} else {
+			GitletNode curr = branches.get(currentBranch);
+		}
+		
+	}
+	
+	public void checkout(String name, String id){
+		int commitId = (int) Integer.parseInt(id);
+	}
+	
+	public void branch(String branchName){
+		if(branches.containsKey(branchName)){
+			System.err.println("A branch with that name already exists.");
+		} else {
+			GitletNode curr = branches.get(currentBranch);
+			branches.put(branchName, curr);
+		}
+	}
 
 	private static void unstageFile(File currentDir, String fileName)
 	{
@@ -303,7 +355,27 @@ public class Gitlet implements Serializable
 			{
 				System.err.println("A gitlet version control system already exists in the current directory.");
 			}
+		} 
+		
+		else if (args[0].equals("status"))
+		{
+			gitlet.status();
 		}
+		
+		else if (args[0].equals("branch"))
+		{
+			gitlet.branch(args[1]);
+		}
+		
+		else if (args[0].equals("checkout"))
+		{
+			if(args.length == 2){
+				gitlet.checkout(args[1]);
+			} else if(args.length == 3){
+				gitlet.checkout(args[1], args[2]);
+			}
+		}
+		
 		try
 		{
 			FileOutputStream fileOut = new FileOutputStream(new File(".gitlet//Gitlet.ser"));
