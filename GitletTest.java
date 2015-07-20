@@ -69,7 +69,6 @@ public class GitletTest {
 		File f = new File(GITLET_DIR);
 		assertTrue(f.exists());
 
-		
 		// Quang's Test
 		File initialCommit = new File(COMMIT_DIR + 0);
 		assertTrue(initialCommit.exists());
