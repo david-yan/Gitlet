@@ -4,16 +4,25 @@ import java.io.*;
 
 public class GitletNode implements Serializable
 {
-	private GitletNode	prevCommit;
-	private String		commitMessage;
-	private String		timeStamp;
-	private int			commitID;
-	private File		contents;
+	private GitletNode			prevCommit; //previous commit node. null for first commit
+	private String				commitMessage;
+	private String				timeStamp;
+	private int					commitID;
+	private File				folder;
+	private ArrayList<String>	nameOfFiles; //names of all of the files in this commit, 
+											 //including the ones not written to the folder
 
-	public GitletNode()
+	public GitletNode(String message, int ID, GitletNode prev)
 	{
+		prevCommit = prev;
+		commitMessage = message;
+		timeStamp = getTimeStamp();
+		commitID = ID;
+		nameOfFiles = new ArrayList<String>();
+		folder = new File(".gitlet/" + commitID);
+		folder.mkdir();
 	}
-
+	
 	public String getTimeStamp()
 	{
 		return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
@@ -32,23 +41,72 @@ public class GitletNode implements Serializable
 		}
 	}
 
-	public GitletNode(String message, int ID, GitletNode prev)
-	{
-		prevCommit = prev;
-		commitMessage = message;
-		timeStamp = getTimeStamp();
-		commitID = ID;
-		contents = new File(".gitlet/" + commitID);
-		contents.mkdir();
-	}
-
 	public GitletNode getPrevCommit()
 	{
 		return prevCommit;
 	}
-
-	public File getContents()
+	public int getID()
 	{
-		return contents;
+		return commitID;
+	}
+	public String getMessage()
+	{
+		return commitMessage;
+	}
+	/**
+	 * @return list of all files associated with this commit
+	 */
+	public ArrayList<String> getFiles()
+	{
+		return nameOfFiles;
+	}
+
+	/**
+	 * Add file name to the list of files. 
+	 * @param fileName Name of file to add
+	 */
+	public void addFile(String fileName)
+	{
+		nameOfFiles.add(fileName);
+	}
+	
+	/**
+	 * @return File of the folder of this commit
+	 */
+	public File getFolder()
+	{
+		return folder;
+	}
+	
+	/**
+	 * Gets the ArrayList of the names of all of the files that have been 
+	 * modified since the node
+	 * @param node The node to be compared with
+	 * @return List of names of modified files
+	 */
+	public ArrayList<String> getModifiedFiles(GitletNode node)
+	{
+		GitletNode current = this;
+		ArrayList<String> toReturn = new ArrayList<String>();
+		while(current != node)
+			for (File file : current.getFolder().listFiles())
+				if (!toReturn.contains(file.getName()))
+					toReturn.add(file.getName());
+		return toReturn;
+	}
+	
+	/**
+	 * Finds and returns the file with the given name
+	 * @param fileName: The name of the file to be returned
+	 * @return Most recent occurrence of the file or null if the file does not exist
+	 */
+	public File getFile(String fileName)
+	{
+		for (File file : folder.listFiles())
+			if (file.getName().equals(fileName))
+				return file;
+		if (prevCommit != null)
+			return prevCommit.getFile(fileName);
+		return null;
 	}
 }
