@@ -48,13 +48,13 @@ public class Gitlet implements Serializable
 		// check if there is anything to commit
 		if (numberOfCommit != 0 && stagingDir.list().length == 0 && untrack.isEmpty())
 		{
-			System.err.println("No changes added to the commit.");
+			System.out.println("No changes added to the commit.");
 			return;
 		}
-		
+
 		isConflicting = false;
 
-		//make new GitletNode
+		// make new GitletNode
 		GitletNode commitNode = new GitletNode(message, numberOfCommit, branches.get(currentBranch));
 
 		if (numberOfCommit > 0)
@@ -62,8 +62,8 @@ public class Gitlet implements Serializable
 			try
 			{
 				/*
-				 * add reference of previous files that are not going to be removed to
-				 * the new GitletNode folder
+				 * add reference of previous files that are not going to be
+				 * removed to the new GitletNode folder
 				 */
 				copyToNewCommit(commitNode);
 				/*
@@ -88,10 +88,12 @@ public class Gitlet implements Serializable
 	}
 
 	/**
-	 * Copy all files from staging folder to the new commit folder and adds
-	 * the file name to the list of files in node
-	 * @param node GitletNode to add everything to
-	 * @throws IOException 
+	 * Copy all files from staging folder to the new commit folder and adds the
+	 * file name to the list of files in node
+	 * 
+	 * @param node
+	 *            GitletNode to add everything to
+	 * @throws IOException
 	 */
 	private void moveFromStagingToNewCommit(GitletNode node) throws IOException
 	{
@@ -105,9 +107,11 @@ public class Gitlet implements Serializable
 	}
 
 	/**
-	 * adds the names of all the files that will not be modified into the list of
-	 * files in node, excluding the ones that have been untracked
-	 * @param node node to add file names to
+	 * adds the names of all the files that will not be modified into the list
+	 * of files in node, excluding the ones that have been untracked
+	 * 
+	 * @param node
+	 *            node to add file names to
 	 */
 	private void copyToNewCommit(GitletNode node)
 	{
@@ -128,12 +132,12 @@ public class Gitlet implements Serializable
 		for (GitletNode node : nodes)
 			System.out.println(node.getID());
 	}
-	
+
 	public void log()
 	{
 		branches.get(currentBranch).printLog();
 	}
-	
+
 	public void global_log()
 	{
 		for (GitletNode node : branches.values())
@@ -154,7 +158,7 @@ public class Gitlet implements Serializable
 		 */
 		if (fileToAdd.isDirectory() || !fileToAdd.exists())
 		{
-			System.err.println("File does not exist.");
+			System.out.println("File does not exist.");
 			return;
 		}
 
@@ -196,7 +200,7 @@ public class Gitlet implements Serializable
 		// fileName));
 		if (!inStagingDir(stagingDir, fileName) && !inHeadCommit(branches.get(currentBranch).getFolder(), fileName))
 		{
-			System.err.println("No reason to remove the file.");
+			System.out.println("No reason to remove the file.");
 			return;
 		}
 
@@ -219,54 +223,6 @@ public class Gitlet implements Serializable
 			System.out.println("called rm but nothing happened");
 		}
 
-	}
-	
-	public void status()
-	{
-		System.out.println("=== Branches ===");
-		System.out.println("*" + currentBranch);
-		for(String branch: branches.keySet())
-		{
-			if(!branch.equals(currentBranch))
-				System.out.println(branch);
-		}
-		System.out.println();
-		
-		System.out.println("=== Staged Files ===");
-		for(File staged: stagingDir.listFiles())
-		{
-			System.out.println(staged.getPath());
-		}
-		System.out.println();
-		
-		System.out.println("=== Files Marked for Untracking");
-		for(String untracked: untrack)
-		{
-			System.out.println(untracked);
-		}
-	}
-	
-	public void branch(String branchName){
-		if(branches.containsKey(branchName)){
-			System.out.println("A branch with that name already exists.");
-		} else {
-			GitletNode curr = branches.get(currentBranch);
-			branches.put(branchName, curr);
-		}
-	}
-	
-		public void removeBranch(String branchName) {
-		if (!branches.containsKey(branchName)) {
-			System.out.println("A branch with that name does not exist.");
-		}
-
-		else if (currentBranch.equals(branchName)) {
-			System.out.println("Cannot remove the current branch.");
-		}
-
-		else {
-			branches.remove(branchName);
-		}
 	}
 
 	private static void unstageFile(File currentDir, String fileName)
@@ -318,16 +274,16 @@ public class Gitlet implements Serializable
 
 	public void merge(String branchName)
 	{
-		//check to see if branch exists
+		// check to see if branch exists
 		if (!branches.containsKey(branchName))
 		{
-			System.err.println("A branch with that name does not exist.");
+			System.out.println("A branch with that name does not exist.");
 			return;
 		}
-		//cannot merge with same branch
+		// cannot merge with same branch
 		if (currentBranch.equals(branchName))
 		{
-			System.err.println("Cannot merge a branch with itself.");
+			System.out.println("Cannot merge a branch with itself.");
 			return;
 		}
 		GitletNode splitPoint = getSplitPoint(currentBranch, branchName);
@@ -349,7 +305,7 @@ public class Gitlet implements Serializable
 				}
 			}
 		if (!isConflicting)
-			commit("Merged " + currentBranch + " with " + branchName);	
+			commit("Merged " + currentBranch + " with " + branchName);
 	}
 
 	private GitletNode getSplitPoint(String branch1, String branch2)
@@ -364,6 +320,61 @@ public class Gitlet implements Serializable
 				node1 = node1.getPrevCommit();
 		}
 		return node1;
+	}
+
+	public void status()
+	{
+		System.out.println("=== Branches ===");
+		System.out.println("*" + currentBranch);
+		for (String branch : branches.keySet())
+		{
+			if (!branch.equals(currentBranch))
+				System.out.println(branch);
+		}
+		System.out.println();
+
+		System.out.println("=== Staged Files ===");
+		for (File staged : stagingDir.listFiles())
+		{
+			System.out.println(staged.getPath());
+		}
+		System.out.println();
+
+		System.out.println("=== Files Marked for Untracking");
+		for (String untracked : untrack)
+		{
+			System.out.println(untracked);
+		}
+	}
+
+	public void branch(String branchName)
+	{
+		if (branches.containsKey(branchName))
+		{
+			System.out.println("A branch with that name already exists.");
+		} else
+		{
+			GitletNode curr = branches.get(currentBranch);
+			branches.put(branchName, curr);
+		}
+	}
+
+	public void removeBranch(String branchName)
+	{
+		if (!branches.containsKey(branchName))
+		{
+			System.out.println("A branch with that name does not exist.");
+		}
+
+		else if (currentBranch.equals(branchName))
+		{
+			System.out.println("Cannot remove the current branch.");
+		}
+
+		else
+		{
+			branches.remove(branchName);
+		}
 	}
 
 	public static void main(String[] args)
@@ -382,9 +393,8 @@ public class Gitlet implements Serializable
 
 		if (args.length == 0)
 		{
-			System.err.println("Please enter a command.");
-		}
-		else if (args[0].equals("commit"))
+			System.out.println("Please enter a command.");
+		} else if (args[0].equals("commit"))
 		{
 
 			if (args.length == 2 && args[1].trim().length() != 0)
@@ -392,43 +402,29 @@ public class Gitlet implements Serializable
 				gitlet.commit(args[1]);
 			} else
 			{
-				System.err.println("Please enter a commit messsage.");
+				System.out.println("Please enter a commit messsage.");
 			}
 
-		}
-		else if (args[0].equals("add"))
+		} else if (args[0].equals("add"))
 		{
 			gitlet.add(args[1]);
 
-		}
-		else if (args[0].equals("rm"))
+		} else if (args[0].equals("rm"))
 		{
 			gitlet.remove(args[1]);
-		}
-		else if (args[0].equals("log"))
+		} else if (args[0].equals("log"))
 		{
 			gitlet.log();
-		}
-		else if (args[0].equals("init"))
+		} else if (args[0].equals("init"))
 		{
 			if (gitlet == null)
 				gitlet = new Gitlet();
 			else
-				System.err.println("A gitlet version control system already exists in the current directory.");
-		}
-		
-		else if (args[0].equals("status"))
-		{
-			gitlet.status();
-		}
-		
-		else if (args[0].equals("branch"))
-		{
-			gitlet.branch(args[1]);
-		}
-		
+				System.out.println("A gitlet version control system already exists in the current directory.");
+		} else if (args[0].equals("merge"))
+			gitlet.merge(args[1]);
 		else
-			System.err.println("No command with that name exists.");
+			System.out.println("No command with that name exists.");
 		try
 		{
 			FileOutputStream fileOut = new FileOutputStream(new File(".gitlet", "Gitlet.ser"));
