@@ -254,6 +254,20 @@ public class Gitlet implements Serializable
 			branches.put(branchName, curr);
 		}
 	}
+	
+		public void removeBranch(String branchName) {
+		if (!branches.containsKey(branchName)) {
+			System.out.println("A branch with that name does not exist.");
+		}
+
+		else if (currentBranch.equals(branchName)) {
+			System.out.println("Cannot remove the current branch.");
+		}
+
+		else {
+			branches.remove(branchName);
+		}
+	}
 
 	private static void unstageFile(File currentDir, String fileName)
 	{
