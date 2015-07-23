@@ -40,6 +40,14 @@ public class GitletNode implements Serializable
 			prevCommit.printLog();
 		}
 	}
+	
+	public void print()
+	{
+		System.out.println("===");
+		System.out.println("Commit " + commitID);
+		System.out.println(timeStamp);
+		System.out.println(commitMessage);
+	}
 
 	public GitletNode getPrevCommit()
 	{
