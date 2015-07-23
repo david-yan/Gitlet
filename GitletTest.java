@@ -27,7 +27,6 @@ public class GitletTest {
 	private static final String GITLET_DIR = ".gitlet/";
 	private static final String TESTING_DIR = "test_files/";
 	private static final String COMMIT_DIR = ".gitlet/commits/";
-
 	/* matches either unix/mac or windows line separators */
 	private static final String LINE_SEPARATOR = "\r\n|[\r\n]";
 
@@ -82,18 +81,19 @@ public class GitletTest {
 	 * Tests that checking out a file name will restore the version of the file
 	 * from the previous commit. Involves init, add, commit, and checkout.
 	 */
-	@Test
-	public void testBasicCheckout() {
-		String wugFileName = TESTING_DIR + "wug.txt";
-		String wugText = "This is a wug.";
-		createFile(wugFileName, wugText);
-		gitlet("init");
-		gitlet("add", wugFileName);
-		gitlet("commit", "added wug");
-		writeFile(wugFileName, "This is not a wug.");
-		gitlet("checkout", wugFileName);
-		assertEquals(wugText, getText(wugFileName));
-	}
+	// @Test
+	// public void testBasicCheckout()
+	// {
+	// String wugFileName = TESTING_DIR + "wug.txt";
+	// String wugText = "This is a wug.";
+	// createFile(wugFileName, wugText);
+	// gitlet("init");
+	// gitlet("add", wugFileName);
+	// gitlet("commit", "added wug");
+	// writeFile(wugFileName, "This is not a wug.");
+	// gitlet("checkout", wugFileName);
+	// assertEquals(wugText, getText(wugFileName));
+	// }
 
 	/**
 	 * Tests that log after one commit conforms to the format in the spec.
@@ -279,4 +279,5 @@ public class GitletTest {
 			return e.getMessage();
 		}
 	}
+
 }
