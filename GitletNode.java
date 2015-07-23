@@ -19,7 +19,7 @@ public class GitletNode implements Serializable
 		timeStamp = getTimeStamp();
 		commitID = ID;
 		nameOfFiles = new ArrayList<String>();
-		folder = new File(".gitlet/commits/" + commitID);
+		folder = new File(".gitlet/" + commitID);
 		folder.mkdir();
 	}
 	
