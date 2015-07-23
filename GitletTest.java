@@ -97,6 +97,9 @@ public class GitletTest
 		assertTrue(new File(GITLET_DIR + 0).exists());
 
 		gitlet("init");
+//		System.out.println(outContent.toString());
+		System.out.println(errContent.toString());
+		assertEquals("hello", outContent.toString());
 		assertEquals("A gitlet version control system already exists in the current directory.", errContent.toString());
 	}
 
@@ -104,19 +107,19 @@ public class GitletTest
 	 * Tests that checking out a file name will restore the version of the file
 	 * from the previous commit. Involves init, add, commit, and checkout.
 	 */
-	@Test
-	public void testBasicCheckout()
-	{
-		String wugFileName = TESTING_DIR + "wug.txt";
-		String wugText = "This is a wug.";
-		createFile(wugFileName, wugText);
-		gitlet("init");
-		gitlet("add", wugFileName);
-		gitlet("commit", "added wug");
-		writeFile(wugFileName, "This is not a wug.");
-		gitlet("checkout", wugFileName);
-		assertEquals(wugText, getText(wugFileName));
-	}
+//	@Test
+//	public void testBasicCheckout()
+//	{
+//		String wugFileName = TESTING_DIR + "wug.txt";
+//		String wugText = "This is a wug.";
+//		createFile(wugFileName, wugText);
+//		gitlet("init");
+//		gitlet("add", wugFileName);
+//		gitlet("commit", "added wug");
+//		writeFile(wugFileName, "This is not a wug.");
+//		gitlet("checkout", wugFileName);
+//		assertEquals(wugText, getText(wugFileName));
+//	}
 
 	/**
 	 * Tests that log after one commit conforms to the format in the spec.
