@@ -27,6 +27,8 @@ public class GitletTest
 {
 	private static final String	GITLET_DIR		= ".gitlet/";
 	private static final String	TESTING_DIR		= "test_files/";
+	private static final String COMMIT_DIR = ".gitlet//commits//";
+	private static final String STAGING_DIR = ".gitlet/staging/";
 
 	/* matches either unix/mac or windows line separators */
 	private static final String	LINE_SEPARATOR	= "\r\n|[\r\n]";
@@ -67,24 +69,21 @@ public class GitletTest
 	}
 
 	private final ByteArrayOutputStream	outContent	= new ByteArrayOutputStream();
-	private final ByteArrayOutputStream	errContent	= new ByteArrayOutputStream();
 
 	@Before
 	public void setUpStreams()
 	{
 		System.setOut(new PrintStream(outContent));
-		System.setErr(new PrintStream(errContent));
 	}
 
 	@After
 	public void cleanUpStreams()
 	{
 		System.setOut(null);
-		System.setErr(null);
 	}
 
 	/**
-//	 * Tests that init creates a .gitlet directory. Does NOT test that init
+	 * Tests that init creates a .gitlet directory. Does NOT test that init
 	 * creates an initial commit, which is the other functionality of init.
 	 */
 	@Test
@@ -94,13 +93,10 @@ public class GitletTest
 		File f = new File(GITLET_DIR);
 		assertTrue(f.exists());
 
-		assertTrue(new File(GITLET_DIR + 0).exists());
+		assertTrue(new File(COMMIT_DIR + 0).exists());
 
 		gitlet("init");
-//		System.out.println(outContent.toString());
-		System.out.println(errContent.toString());
-		assertEquals("hello", outContent.toString());
-		assertEquals("A gitlet version control system already exists in the current directory.", errContent.toString());
+		assertEquals("A gitlet version control system already exists in the current directory.", outContent.toString().trim());
 	}
 
 	/**
@@ -335,5 +331,33 @@ public class GitletTest
 		}
 	}
 
-
+	@Test
+	public void testCommit()
+	{
+		gitlet("init");
+		String firstCommit = "commit 1";
+		String commitText = "This is the first commit";
+		String commitFileName = TESTING_DIR + "first_commit.txt";
+		createFile(commitFileName, commitText);
+		gitlet("add", commitFileName);
+		gitlet("commit", firstCommit);
+		String logOutput = gitlet("log");
+		assertArrayEquals(new String[] {firstCommit, "initial commit"}, extractCommitMessages(logOutput));
+		String secondCommit = "commit 2";
+		String commit2Text = "This is the second commit";
+		String commit2FileName = TESTING_DIR + "second_commit.txt";
+		assertTrue(new File(COMMIT_DIR + "1//first_commit.txt").exists());
+		gitlet("add", COMMIT_DIR + "1//first_commit.txt");
+		writeFile(STAGING_DIR + "first_commit.txt", commit2Text);
+		createFile(commit2FileName, commit2Text);
+		gitlet("add", commit2FileName);
+		gitlet("commit", secondCommit);
+		logOutput = gitlet("log");
+		assertArrayEquals(new String[] {secondCommit, firstCommit, "initial commit"}, extractCommitMessages(logOutput));
+		assertTrue(new File(COMMIT_DIR + "2//first_commit.txt").exists());
+		assertTrue(new File(COMMIT_DIR + "2//second_commit.txt").exists());
+		assertEquals(getText(COMMIT_DIR + "2//second_commit.txt"), commit2Text);
+		assertEquals(getText(COMMIT_DIR + "2//first_commit.txt"), commit2Text);
+		assertEquals(getText(COMMIT_DIR + "1//first_commit.txt"), commitText);
+	}
 }
