@@ -20,7 +20,8 @@ public class Gitlet implements Serializable
 	private HashMap<String, LinkedList<GitletNode>>	commits;
 	private File									stagingDir	= new File(".gitlet/staging");
 	private File									commitDir	= new File(".gitlet/commits");
-	private HashSet<String>							untrack;
+	private HashSet<String>								untrack;
+	private HashMap<String, GitletNode> 						tableOfCommitID;
 	private String									currentBranch;
 	public boolean									isConflicting;								// specific
 																								// for
@@ -33,6 +34,7 @@ public class Gitlet implements Serializable
 		untrack = new HashSet<String>();
 		branches = new HashMap<String, GitletNode>();
 		commits = new HashMap<String, LinkedList<GitletNode>>();
+		tableOfCommitID = new HashMap<String, GitletNode>();
 		currentBranch = "master";
 		isConflicting = false;
 		if (!gitletDir.exists())
@@ -77,7 +79,10 @@ public class Gitlet implements Serializable
 				e.printStackTrace();
 			}
 		}
-
+		
+		// adds the node into HashSet ID
+		// in order for reset to access each node in constant time
+		tableOfCommitID.put(Integer.toString(numberOfCommit), commitNode);
 		numberOfCommit++;
 
 		branches.put(currentBranch, commitNode);
