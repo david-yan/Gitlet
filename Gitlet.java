@@ -403,7 +403,13 @@ public class Gitlet implements Serializable
 			}
 		}
 	}
-
+	
+	/**
+	 * remove the branch with the given branch name
+	 * 
+	 * @param branchName
+	 *            to check if the branch exist
+	 */
 	public void removeBranch(String branchName)
 	{
 		if (!branches.containsKey(branchName))
@@ -420,6 +426,35 @@ public class Gitlet implements Serializable
 		{
 			branches.remove(branchName);
 		}
+	}
+	
+	/**
+	 * checks out all the files tracked by the commit corresponding to the given
+	 * commit ID and set the current branch's head to point to that commit node
+	 * 
+	 * @param commitID
+	 *            to find the corresponding commit node
+	 * @throws IOException
+	 *             because checkout throws IOException but no exception would be
+	 *             thrown because each file exists
+	 */
+	public void reset(String commitID) throws IOException {
+		if (!tableOfCommitID.containsKey(commitID)) {
+			System.out.println("No commit with that id exists.");
+			return;
+		}
+
+		// corresponding commit node of the given commit ID
+		GitletNode toReset = tableOfCommitID.get(commitID);
+
+		// need to get contents of node
+		// then check out each file tracked by the node
+		for (String fileName : toReset.getFiles()) {
+			checkout(fileName, commitID);
+		}
+
+		// then move current branch's head to point to node
+		branches.put(currentBranch, toReset);
 	}
 
 	public static void main(String[] args)
@@ -484,8 +519,13 @@ public class Gitlet implements Serializable
 					e.printStackTrace();
 				}
 			}
-		} 
-		else
+		} else if (args[0].equals("reset")) {
+			try {
+				gitlet.reset(args[1]);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} else
 			System.out.println("No command with that name exists.");
 		try
 		{
