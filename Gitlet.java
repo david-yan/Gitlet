@@ -374,15 +374,12 @@ public class Gitlet implements Serializable
 			} else if(args.length == 3){
 				gitlet.checkout(args[1], args[2]);
 			}
-		}
+		} 
 		
-		try
-		{
-			FileOutputStream fileOut = new FileOutputStream(new File(".gitlet//Gitlet.ser"));
-		} catch (Exception e)
-		{
+		else {
 			System.err.println("No command with that name exists.");
 		}
+		
 		try
 		{
 			FileOutputStream fileOut = new FileOutputStream(new File(".gitlet", "Gitlet.ser"));
