@@ -358,6 +358,46 @@ public class Gitlet implements Serializable
 			branches.put(branchName, curr);
 		}
 	}
+	
+	public void checkout(String name) throws IOException{
+		if(branches.containsKey(name)){
+			if(name.equals(currentBranch)){
+				System.out.println("No need to checkout the current branch.");
+			} else {
+				GitletNode curr = branches.get(name);
+				for(String file: curr.getFiles()){
+					File requestedFile = curr.getFile(file);
+					Files.copy(requestedFile.toPath(), new File("").toPath(), REPLACE_EXISTING);
+				}
+				currentBranch = name;
+			}
+		} else {
+			GitletNode curr = branches.get(currentBranch);		
+			File temp = new File(name);
+			File requestedFile = curr.getFile(temp.getName());
+			if(requestedFile == null){
+				System.out.println("File does not exist in the most recent commit, or no such branch exists.");
+			} else {
+				Files.copy(requestedFile.toPath(), temp.toPath(), REPLACE_EXISTING);
+			}
+		}
+		
+	}
+	
+	public void checkout(String name, String id) throws IOException{
+		GitletNode curr = tableOfCommitID.get(id); 
+		File temp = new File(name);
+		if(curr == null){
+			System.out.println("No commit with that id exists.");
+		} else {
+			File requestedFile = curr.getFile(temp.getName());
+			if(requestedFile == null){
+				System.out.println("File does not exist in the most recent commit, or no such branch exists.");
+			} else {
+				Files.copy(requestedFile.toPath(), temp.toPath(), REPLACE_EXISTING);
+			}
+		}
+	}
 
 	public void removeBranch(String branchName)
 	{
@@ -423,6 +463,23 @@ public class Gitlet implements Serializable
 				System.out.println("A gitlet version control system already exists in the current directory.");
 		} else if (args[0].equals("merge"))
 			gitlet.merge(args[1]);
+			
+		else if (args[0].equals("checkout"))
+		{
+			if(args.length == 2){
+				try {
+					gitlet.checkout(args[1]);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			} else if(args.length == 3){
+				try {
+					gitlet.checkout(args[1], args[2]);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		} 
 		else
 			System.out.println("No command with that name exists.");
 		try
