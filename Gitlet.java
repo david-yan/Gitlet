@@ -545,6 +545,21 @@ public class Gitlet implements Serializable
 			gitlet.status();
 		else if (args[0].equals("rm-branch"))
 			gitlet.removeBranch(args[1]);
+			else if (args[0].equals("checkout")) {
+			if (args.length == 2) {
+				try {
+					gitlet.checkout(args[1]);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			} else if (args.length == 3) {
+				try {
+					gitlet.checkout(args[1], args[2]);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 		else
 			System.out.println("No command with that name exists.");
 		try
