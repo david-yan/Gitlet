@@ -400,7 +400,7 @@ public class Gitlet implements Serializable
 		{
 			GitletNode curr = branches.get(currentBranch);		
 			File toWorkingDir = new File(name);
-			File requestedFile = curr.getFile(".gitlet/" + curr.getID() + "/" + name);
+			File requestedFile = curr.getFile(name);
 			if(requestedFile == null){
 				System.out.println("File does not exist in the most recent commit, or no such branch exists.");
 			} else {
@@ -420,7 +420,7 @@ public class Gitlet implements Serializable
 		}
 		else
 		{
-			File requestedFile = curr.getFile(".gitlet/" + id + "/" + name);
+			File requestedFile = curr.getFile(name);
 			if (requestedFile == null)
 			{
 				System.out.println("File does not exist in the most recent commit, or no such branch exists.");
