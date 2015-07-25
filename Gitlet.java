@@ -182,7 +182,8 @@ public class Gitlet implements Serializable
 			// need to get the file name and not the path
 			// use File.getname()
 
-			File toStagingDir = new File(".gitlet/staging/" + fileToAdd.getName());
+			File toStagingDir = new File(".gitlet/staging/" + fileToAdd.getPath());
+			toStagingDir.getParentFile().mkdirs();
 			copyFileUsingFileChannels(fileToAdd, toStagingDir);
 		}
 		catch (IOException e)
@@ -341,7 +342,7 @@ public class Gitlet implements Serializable
 		}
 		System.out.println();
 
-		System.out.println("=== Files Marked for Untracking");
+		System.out.println("=== Files Marked for Untracking ===");
 		for (String untracked : untrack)
 		{
 			System.out.println(untracked);
@@ -383,15 +384,11 @@ public class Gitlet implements Serializable
 	{
 		if (branches.containsKey(name))
 		{
-			if (name.equals(currentBranch))
-			{
+			if(name.equals(currentBranch)){
 				System.out.println("No need to checkout the current branch.");
-			}
-			else
-			{
+			} else {
 				GitletNode curr = branches.get(name);
-				for (String file : curr.getFiles())
-				{
+				for(String file: curr.getFiles()){
 					File requestedFile = curr.getFile(file);
 					File toWorkingDir = new File(requestedFile.getName());
 					copyFileUsingFileChannels(requestedFile, toWorkingDir);
@@ -401,38 +398,35 @@ public class Gitlet implements Serializable
 		}
 		else
 		{
-			GitletNode curr = branches.get(currentBranch);
-			File requestedFile = curr.getFile(new File(name).getName());
-			if (requestedFile == null)
-			{
+			GitletNode curr = branches.get(currentBranch);		
+			File toWorkingDir = new File(name);
+			File requestedFile = curr.getFile(".gitlet/" + curr.getID() + "/" + name);
+			if(requestedFile == null){
 				System.out.println("File does not exist in the most recent commit, or no such branch exists.");
-			}
-			else
-			{
-				File toWorkingDir = new File(requestedFile.getName());
+			} else {
 				copyFileUsingFileChannels(requestedFile, toWorkingDir);
 			}
 		}
 
 	}
 
-	public void checkout(String name, String id) throws IOException
+	public void checkout(String id, String name) throws IOException
 	{
 		GitletNode curr = tableOfCommitID.get(id);
+		File toWorkingDir = new File(name);
 		if (curr == null)
 		{
 			System.out.println("No commit with that id exists.");
 		}
 		else
 		{
-			File requestedFile = curr.getFile(new File(name).getName());
+			File requestedFile = curr.getFile(".gitlet/" + id + "/" + name);
 			if (requestedFile == null)
 			{
 				System.out.println("File does not exist in the most recent commit, or no such branch exists.");
 			}
 			else
 			{
-				File toWorkingDir = new File(requestedFile.getName());
 				copyFileUsingFileChannels(requestedFile, toWorkingDir);
 			}
 		}
