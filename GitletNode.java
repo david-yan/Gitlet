@@ -110,15 +110,22 @@ public class GitletNode implements Serializable
 	 */
 	public File getFile(String fileName)
 	{
-		if (!nameOfFiles.contains(fileName))
-			return null;
-		for (File file : folder.listFiles())
-		{
-			if (file.getName().equals(fileName))
-				return file;
-		}
-		if (prevCommit != null)
+		fileName = fileName.replace("/", "\\").trim();
+		File searched = searchFolders(folder.listFiles(), fileName);
+		if(searched != null)
+			return searched;
+		else if (prevCommit != null)
 			return prevCommit.getFile(fileName);
+		return null;
+	}
+	
+	private static File searchFolders(File[] files, String fileName){
+		for(File file: files){
+			if(file.getPath().equals(fileName))
+				return file;
+			if(file.isDirectory())
+				return searchFolders(file.listFiles(), fileName);
+		}
 		return null;
 	}
 }
