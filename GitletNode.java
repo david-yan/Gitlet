@@ -95,6 +95,7 @@ public class GitletNode implements Serializable
 			for (File file : current.getFolder().listFiles())
 				if (!toReturn.contains(file.getName()))
 					toReturn.add(file);
+			// fixed
 			current = current.prevCommit;
 		}
 		return toReturn;
@@ -130,6 +131,7 @@ public class GitletNode implements Serializable
 			for (File file : current.getFolder().listFiles())
 				if (!toReturn.contains(file.getName()))
 					toReturn.add(file.getName());
+			// fixed
 			current = current.prevCommit;
 		}
 		return toReturn;
