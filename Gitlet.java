@@ -26,6 +26,9 @@ public class Gitlet implements Serializable
 																								// for
 																								// merge
 	private HashMap<String, GitletNode>				tableOfCommitID;
+		// modified for rebase
+	// to contain each node that needs to be rebase
+	private Stack<GitletNode> nodesToRebase;
 
 	public Gitlet()
 	{
@@ -35,6 +38,10 @@ public class Gitlet implements Serializable
 		branches = new HashMap<String, GitletNode>();
 		commits = new HashMap<String, LinkedList<GitletNode>>();
 		tableOfCommitID = new HashMap<String, GitletNode>();
+		
+		// modified for rebase
+		nodesToRebase = new Stack<GitletNode>();
+	
 		currentBranch = "master";
 		branches.put(currentBranch, null);
 		isConflicting = false;
@@ -142,9 +149,9 @@ public class Gitlet implements Serializable
 		branches.get(currentBranch).printLog();
 	}
 
-	public void global_log()
-	{
-		for (GitletNode node : branches.values())
+	// fixed
+	public void global_log() {
+		for (GitletNode node : tableOfCommitID.values())
 			node.print();
 	}
 
@@ -287,7 +294,9 @@ public class Gitlet implements Serializable
 			System.out.println("Cannot merge a branch with itself.");
 			return;
 		}
-		GitletNode splitPoint = getSplitPoint(currentBranch, branchName);
+		
+		// modified for rebase
+		GitletNode splitPoint = getSplitPoint(currentBranch, branchName, false);
 		ArrayList<String> modifiedHere = branches.get(currentBranch).getModifiedFiles(splitPoint);
 		ArrayList<String> modifiedThere = branches.get(branchName).getModifiedFiles(splitPoint);
 		for (String s : modifiedThere)
@@ -310,18 +319,25 @@ public class Gitlet implements Serializable
 			commit("Merged " + currentBranch + " with " + branchName);
 	}
 
-	private GitletNode getSplitPoint(String branch1, String branch2)
-	{
-		GitletNode node1 = branches.get(branch1);
-		GitletNode node2 = branches.get(branch2);
-		while (node1 != node2)
-		{
-			if (node1.getID() < node2.getID())
-				node2 = node2.getPrevCommit();
-			else
-				node1 = node1.getPrevCommit();
+		// modified for rebase
+	private GitletNode getSplitPoint(String currentBranch, String givenBranch,
+			boolean isRebasing) {
+		GitletNode currentBranchNode = branches.get(currentBranch);
+		GitletNode givenBranchNode = branches.get(givenBranch);
+		while (currentBranchNode != givenBranchNode) {
+			if (currentBranchNode.getID() < givenBranchNode.getID())
+				givenBranchNode = givenBranchNode.getPrevCommit();
+			else {
+
+				// modified for rebase
+				if (isRebasing) {
+					nodesToRebase.add(currentBranchNode);
+				}
+
+				currentBranchNode = currentBranchNode.getPrevCommit();
+			}
 		}
-		return node1;
+		return currentBranchNode;
 	}
 
 	public void status()
@@ -463,6 +479,165 @@ public class Gitlet implements Serializable
 		// then move current branch's head to point to node
 		branches.put(currentBranch, toReset);
 	}
+	
+		// modified for rebase
+
+	/**
+	 * rebase the current branch to the given branch by getting the history
+	 * commits of the current branch until the splitting point of current branch
+	 * and given branch, then replay the history commits of the current branch
+	 * to the given branch at the head of the given branch by the process of
+	 * committing new commits
+	 * 
+	 * @param branchName
+	 *            branch name for the current branch to rebase to
+	 * @throws IOException
+	 */
+	public void rebase(String branchName) throws IOException {
+		if (!branches.containsKey(branchName)) {
+			System.out.println("A branch with that name does not exist.");
+			return;
+		}
+		if (currentBranch.equals(branchName)) {
+			System.out.println("Cannot rebase a branch onto itself.");
+			return;
+		}
+
+		GitletNode givenBranchHead = branches.get(branchName);
+		GitletNode currentBranchHead = branches.get(currentBranch);
+		if (inHistoryOfBranch(currentBranchHead, givenBranchHead)) {
+			System.out.println("Already up-to-date.");
+			return;
+		}
+
+		// special case:
+		// if current branch's head is in history of given branch's head,
+		// just move current branch to point to give branch's commit
+		if (inHistoryOfBranch(givenBranchHead, currentBranchHead)) {
+			branches.put(currentBranch, givenBranchHead);
+			return;
+		}
+
+		// actual rebase
+
+		// in getSplitPoint, all the nodes to be rebase are saved in a linked
+		// list
+		// because last argument is true, indicating that we're rebasing
+		GitletNode splitPoint = getSplitPoint(currentBranch, branchName, true);
+
+		boolean firstReplayCommit = true;
+
+		// get modified files of currentBranchHead
+		// to propagate the modified files
+		while (!nodesToRebase.isEmpty()) {
+
+			// next node to be rebase
+			GitletNode nextToRebase = nodesToRebase.pop();
+
+			// for the first replay commit, prevNode of the new replay commit
+			// will the given branch head
+			if (firstReplayCommit)
+				rebaseCommit(nextToRebase.getMessage(), givenBranchHead);
+
+			// replay commits after the first will have current branch head as
+			// its prevNode because we updated current branch head to point the
+			// first replay commit
+			else
+				rebaseCommit(nextToRebase.getMessage(), currentBranchHead);
+
+			// after commit
+			// current branch head now points to the new commit which should
+			// have the
+			// given branch head as its prev node
+
+			// need to update the currentBranchHead because commit updated it
+			currentBranchHead = branches.get(currentBranch);
+
+			// copy all the files from nextToRebase into new replay commit
+			copyAllFilesTo(nextToRebase, currentBranchHead);
+			
+			ArrayList<String> nonModified = currentBranchHead
+					.getNonModifiedFiles();
+			for (File currentHeadModifiedFile : givenBranchHead
+					.getModifiedFilesForRebase(splitPoint)) {
+				// compare each given branch head node's modified file with
+				// non-modified files of current branch head
+				// if any is a match, then copy given branch head node's
+				// modified
+				// file into current branch head's folder as a modified file
+				for (String fileName : nonModified) {
+					if (currentHeadModifiedFile.getName().equals(fileName)) {
+
+						// needs the path of currentHeadModifiedFile
+						File source = currentHeadModifiedFile;
+						File dest = new File(".gitlet//commits//"
+								+ currentBranchHead.getID() + "//" + fileName);
+						copyFileUsingFileChannels(source, dest);
+					}
+				}
+			}
+			firstReplayCommit = false;
+		}
+
+
+		// finally, reset to node at the front of the replayed branch, which
+		// should be the latest commit ID
+		reset(Integer.toString(numberOfCommit - 1));
+	}
+
+	// modified for rebase
+
+	public void rebaseCommit(String message, GitletNode prevCommit) {
+		GitletNode commitNode = new GitletNode(message, numberOfCommit,
+				prevCommit);
+
+		numberOfCommit++;
+		tableOfCommitID.put(Integer.toString(commitNode.getID()), commitNode);
+		branches.put(currentBranch, commitNode);
+
+		if (!commits.containsKey(commitNode.getMessage()))
+			commits.put(commitNode.getMessage(), new LinkedList<GitletNode>());
+		commits.get(commitNode.getMessage()).add(commitNode);
+	}
+
+	// modified for rebase
+
+	/**
+	 * checks if toCompare is in the history of toTraverse by comparing pointers
+	 * of toTraverse's prevCommit to toCompare
+	 * 
+	 * @param toTraverse
+	 *            node to traverse back to previous commits
+	 * @param toCompare
+	 *            node to compare with
+	 * @return true if toCompare is in the history of toTraverse
+	 */
+	private static boolean inHistoryOfBranch(GitletNode toTraverse,
+			GitletNode toCompare) {
+		GitletNode checkPrevCommit = toTraverse;
+		while (checkPrevCommit != null) {
+			if (checkPrevCommit == toCompare) {
+				return true;
+			}
+			checkPrevCommit = checkPrevCommit.getPrevCommit();
+		}
+		return false;
+
+	}
+
+	// modified for rebase
+	private void copyAllFilesTo(GitletNode from, GitletNode to)
+			throws IOException {
+		ArrayList<String> files = from.getFiles();
+		for (String fileName : files) {
+			to.addFile(fileName);
+		}
+		for (File file : from.getFolder().listFiles()) {
+			File dest = new File(".gitlet//commits//" + to.getID() + "//"
+					+ file.getName());
+			copyFileUsingFileChannels(file, dest);
+		}
+	}
 
 	/*****************************************************************************/
 	/**
@@ -563,6 +738,15 @@ public class Gitlet implements Serializable
 					e.printStackTrace();
 				}
 			}
+		}else if (args[0].equals("rebase")) {
+			try {
+				gitlet.rebase(args[1]);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		} else if (args[0].equals("global-log")) {
+			gitlet.global_log();
 		}
 		else
 			System.out.println("No command with that name exists.");
