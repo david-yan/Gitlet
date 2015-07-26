@@ -19,7 +19,7 @@ public class GitletNode implements Serializable
 		timeStamp = getTimeStamp();
 		commitID = ID;
 		nameOfFiles = new ArrayList<String>();
-		folder = new File(".gitlet/" + commitID);
+		folder = new File(".gitlet/commits/" + commitID);
 		folder.mkdir();
 	}
 	
@@ -39,6 +39,14 @@ public class GitletNode implements Serializable
 			System.out.println();
 			prevCommit.printLog();
 		}
+	}
+	
+	public void print()
+	{
+		System.out.println("===");
+		System.out.println("Commit " + commitID);
+		System.out.println(timeStamp);
+		System.out.println(commitMessage);
 	}
 
 	public GitletNode getPrevCommit()
@@ -102,11 +110,23 @@ public class GitletNode implements Serializable
 	 */
 	public File getFile(String fileName)
 	{
-		for (File file : folder.listFiles())
-			if (file.getName().equals(fileName))
-				return file;
-		if (prevCommit != null)
+		String updatedName = ".gitlet/commits/" + commitID + "/" + fileName;
+		updatedName = updatedName.replace("/", "\\").trim();
+		File searched = searchFolders(folder.listFiles(), updatedName);
+		if(searched != null)
+			return searched;
+		else if (prevCommit != null)
 			return prevCommit.getFile(fileName);
+		return null;
+	}
+	
+	private static File searchFolders(File[] files, String fileName){
+		for(File file: files){
+			if(file.getPath().equals(fileName))
+				return file;
+			if(file.isDirectory())
+				return searchFolders(file.listFiles(), fileName);
+		}
 		return null;
 	}
 }
