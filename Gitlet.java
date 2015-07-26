@@ -738,6 +738,15 @@ public class Gitlet implements Serializable
 					e.printStackTrace();
 				}
 			}
+		}else if (args[0].equals("rebase")) {
+			try {
+				gitlet.rebase(args[1]);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		} else if (args[0].equals("global-log")) {
+			gitlet.global_log();
 		}
 		else
 			System.out.println("No command with that name exists.");
