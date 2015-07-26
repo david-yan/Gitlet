@@ -294,7 +294,9 @@ public class Gitlet implements Serializable
 			System.out.println("Cannot merge a branch with itself.");
 			return;
 		}
-		GitletNode splitPoint = getSplitPoint(currentBranch, branchName);
+		
+		// modified for rebase
+		GitletNode splitPoint = getSplitPoint(currentBranch, branchName, false);
 		ArrayList<String> modifiedHere = branches.get(currentBranch).getModifiedFiles(splitPoint);
 		ArrayList<String> modifiedThere = branches.get(branchName).getModifiedFiles(splitPoint);
 		for (String s : modifiedThere)
@@ -317,18 +319,25 @@ public class Gitlet implements Serializable
 			commit("Merged " + currentBranch + " with " + branchName);
 	}
 
-	private GitletNode getSplitPoint(String branch1, String branch2)
-	{
-		GitletNode node1 = branches.get(branch1);
-		GitletNode node2 = branches.get(branch2);
-		while (node1 != node2)
-		{
-			if (node1.getID() < node2.getID())
-				node2 = node2.getPrevCommit();
-			else
-				node1 = node1.getPrevCommit();
+		// modified for rebase
+	private GitletNode getSplitPoint(String currentBranch, String givenBranch,
+			boolean isRebasing) {
+		GitletNode currentBranchNode = branches.get(currentBranch);
+		GitletNode givenBranchNode = branches.get(givenBranch);
+		while (currentBranchNode != givenBranchNode) {
+			if (currentBranchNode.getID() < givenBranchNode.getID())
+				givenBranchNode = givenBranchNode.getPrevCommit();
+			else {
+
+				// modified for rebase
+				if (isRebasing) {
+					nodesToRebase.add(currentBranchNode);
+				}
+
+				currentBranchNode = currentBranchNode.getPrevCommit();
+			}
 		}
-		return node1;
+		return currentBranchNode;
 	}
 
 	public void status()
