@@ -86,6 +86,36 @@ public class GitletNode implements Serializable
 		return folder;
 	}
 	
+		// modified for rebase
+	public ArrayList<File> getModifiedFilesForRebase(GitletNode node)
+	{
+		GitletNode current = this;
+		ArrayList<File> toReturn = new ArrayList<File>();
+		while(current != node) {
+			for (File file : current.getFolder().listFiles())
+				if (!toReturn.contains(file.getName()))
+					toReturn.add(file);
+			current = current.prevCommit;
+		}
+		return toReturn;
+	}
+	
+	// modified for rebase
+	public ArrayList<String> getNonModifiedFiles() {
+		GitletNode current = this;
+		ArrayList<String> toRtn = new ArrayList<String>();
+		
+		// this runs in O(n^2)
+		for (String fileName : current.getFiles()) {
+			for (File modifiedFile : getFolder().listFiles()) {
+				if (!fileName.equals(modifiedFile.getName())) {
+					toRtn.add(fileName);
+				}
+			}
+		}
+		return toRtn;
+	}
+	
 	/**
 	 * Gets the ArrayList of the names of all of the files that have been 
 	 * modified since the node
@@ -96,10 +126,12 @@ public class GitletNode implements Serializable
 	{
 		GitletNode current = this;
 		ArrayList<String> toReturn = new ArrayList<String>();
-		while(current != node)
+		while(current != node) {
 			for (File file : current.getFolder().listFiles())
 				if (!toReturn.contains(file.getName()))
 					toReturn.add(file.getName());
+			current = current.prevCommit;
+		}
 		return toReturn;
 	}
 	
