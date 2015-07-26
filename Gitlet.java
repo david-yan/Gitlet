@@ -38,6 +38,10 @@ public class Gitlet implements Serializable
 		branches = new HashMap<String, GitletNode>();
 		commits = new HashMap<String, LinkedList<GitletNode>>();
 		tableOfCommitID = new HashMap<String, GitletNode>();
+		
+		// modified for rebase
+		nodesToRebase = new Stack<GitletNode>();
+	
 		currentBranch = "master";
 		branches.put(currentBranch, null);
 		isConflicting = false;
