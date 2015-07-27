@@ -31,6 +31,10 @@ public class Gitlet implements Serializable
 	// to contain each node that needs to be rebase
 	private Stack<GitletNode>						nodesToRebase;
 
+	/**
+	 * Gitlet constructor, initializes all the instance variables
+	 * if its the first time Gitlet gets created, creates all the necessary directories
+	 */
 	public Gitlet()
 	{
 		File gitletDir = new File(".gitlet");
@@ -55,6 +59,13 @@ public class Gitlet implements Serializable
 			commit("initial commit");
 		}
 	}
+	
+	/**
+	 * make a new commit with a message
+	 * 
+	 * @param message
+	 * 		message associated with the commit
+	 */
 	public void commit(String message)
 	{
 		// check if there is anything to commit
@@ -161,7 +172,12 @@ public class Gitlet implements Serializable
 			node.print();
 	}
 
-	// should only add files, not folders / directory
+	/**
+	 * add file into the staging folder for the next commit
+	 * 
+	 * @param fileName
+	 * 				fileName to add into the staging folder
+	 */
 	public void add(String fileName)
 	{
 		// fileName could be a path to the file
@@ -204,7 +220,13 @@ public class Gitlet implements Serializable
 		}
 
 	}
-
+	/**
+	 * untracks the file for the next commit
+	 * if it was in the staging folder, delete it
+	 * 
+	 * @param fileName
+	 *            fileName to be untracked
+	 */
 	public void remove(String fileName)
 	{
 		// if file is not in staging folder
@@ -371,7 +393,11 @@ public class Gitlet implements Serializable
 			System.out.println(untracked);
 		}
 	}
-
+	/**
+	 * creating a new branch by creating a reference to the given branch name
+	 * @param branchName
+	 * 		branch name to be created
+	 */
 	public void branch(String branchName)
 	{
 		if (branches.containsKey(branchName))
@@ -384,7 +410,12 @@ public class Gitlet implements Serializable
 			branches.put(branchName, curr);
 		}
 	}
-
+	/**
+	 * remove the branch, so you cannot reference given branch anymore
+	 * 
+	 * @param branchName
+	 * 				name of branch to be removed
+	 */
 	public void removeBranch(String branchName)
 	{
 		if (!branches.containsKey(branchName))
@@ -403,6 +434,19 @@ public class Gitlet implements Serializable
 		}
 	}
 
+	/**
+	 * if the given name is a branch name, then it has priority over the file
+	 * name if this is the case, then takes all the files in the head commit of
+	 * the current branch and put them in the working directory, overwriting
+	 * preexisting files and sets the given branch as the current branch
+	 * 
+	 * if file name does not match the branch name, then take the file as it
+	 * exists in the head commit of the current branch and put it in the working
+	 * directory, overwriting preexisting versions
+	 * 
+	 * @param name
+	 * 			either a branch name, or file name
+	 * @throws IOEx
 	public void checkout(String name) throws IOException
 	{
 		if (branches.containsKey(name))
@@ -439,7 +483,17 @@ public class Gitlet implements Serializable
 		}
 
 	}
-
+	/**
+	 * takes the version of each files as it exists in the given commit with the
+	 * commit id and puts them in the working directory, overwriting
+	 * files that were previously there
+	 * 
+	 * @param id
+	 *            given commit id
+	 * @param name
+	 *            given fileName
+	 * @throws IOException
+	 */
 	public void checkout(String id, String name) throws IOException
 	{
 		GitletNode curr = tableOfCommitID.get(id);
