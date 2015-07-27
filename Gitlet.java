@@ -20,15 +20,16 @@ public class Gitlet implements Serializable
 	private HashMap<String, LinkedList<GitletNode>>	commits;
 	private final File								STAGING_DIR	= new File(".gitlet/staging");
 	private final File								COMMIT_DIR	= new File(".gitlet/commits");
+	private LinkedList<String> inStagingDir;
 	private HashSet<String>							untrack;
 	private String									currentBranch;
 	public boolean									isConflicting;								// specific
 																								// for
 																								// merge
 	private HashMap<String, GitletNode>				tableOfCommitID;
-		// modified for rebase
+	// modified for rebase
 	// to contain each node that needs to be rebase
-	private Stack<GitletNode> nodesToRebase;
+	private Stack<GitletNode>						nodesToRebase;
 
 	public Gitlet()
 	{
@@ -38,10 +39,11 @@ public class Gitlet implements Serializable
 		branches = new HashMap<String, GitletNode>();
 		commits = new HashMap<String, LinkedList<GitletNode>>();
 		tableOfCommitID = new HashMap<String, GitletNode>();
-		
+		inStagingDir = new LinkedList<String>();
+
 		// modified for rebase
 		nodesToRebase = new Stack<GitletNode>();
-	
+
 		currentBranch = "master";
 		branches.put(currentBranch, null);
 		isConflicting = false;
@@ -56,7 +58,7 @@ public class Gitlet implements Serializable
 	public void commit(String message)
 	{
 		// check if there is anything to commit
-		if (numberOfCommit != 0 && STAGING_DIR.list().length == 0 && untrack.isEmpty())
+		if (numberOfCommit != 0 && inStagingDir.isEmpty() && untrack.isEmpty())
 		{
 			System.out.println("No changes added to the commit.");
 			return;
@@ -109,10 +111,13 @@ public class Gitlet implements Serializable
 	private void moveFromStagingToNewCommit(GitletNode node) throws IOException
 	{
 		File newCommit = node.getFolder();
-		for (File file : STAGING_DIR.listFiles())
+		while(!inStagingDir.isEmpty())
 		{
-			node.addFile(file.getName());
-			File newCommitPath = new File(newCommit, file.getName());
+			String fileName = inStagingDir.pop();
+			File file = new File(STAGING_DIR, fileName);
+			node.addFile(fileName);
+			File newCommitPath = new File(newCommit, fileName);
+			newCommitPath.mkdirs();
 			Files.move(file.toPath(), newCommitPath.toPath(), REPLACE_EXISTING);
 		}
 	}
@@ -128,7 +133,7 @@ public class Gitlet implements Serializable
 	{
 		ArrayList<String> files = branches.get(currentBranch).getFiles();
 		for (String fileName : files)
-			if (!inStagingDir(STAGING_DIR, fileName) && !untrack.contains(fileName))
+			if (!inStagingDir.contains(fileName) && !untrack.contains(fileName))
 				node.addFile(fileName);
 	}
 
@@ -150,7 +155,8 @@ public class Gitlet implements Serializable
 	}
 
 	// fixed
-	public void global_log() {
+	public void global_log()
+	{
 		for (GitletNode node : tableOfCommitID.values())
 			node.print();
 	}
@@ -158,7 +164,6 @@ public class Gitlet implements Serializable
 	// should only add files, not folders / directory
 	public void add(String fileName)
 	{
-
 		// fileName could be a path to the file
 		File fileToAdd = new File(fileName);
 
@@ -177,7 +182,6 @@ public class Gitlet implements Serializable
 		if (untrack.contains(fileName))
 		{
 			untrack.remove(fileName);
-			System.out.println("file is now unmark for \"untracking\"");
 			return;
 		}
 
@@ -192,6 +196,7 @@ public class Gitlet implements Serializable
 			File toStagingDir = new File(".gitlet/staging/" + fileToAdd.getPath());
 			toStagingDir.getParentFile().mkdirs();
 			copyFileUsingFileChannels(fileToAdd, toStagingDir);
+			inStagingDir.add(fileToAdd.getPath());
 		}
 		catch (IOException e)
 		{
@@ -205,7 +210,7 @@ public class Gitlet implements Serializable
 		// if file is not in staging folder
 		// or it's not tracked by head commit
 
-		if (!inStagingDir(STAGING_DIR, fileName) && !inHeadCommit(branches.get(currentBranch).getFolder(), fileName))
+		if (!inStagingDir.contains(fileName) && !inHeadCommit(branches.get(currentBranch).getFolder(), fileName))
 		{
 			System.out.println("No reason to remove the file.");
 			return;
@@ -213,18 +218,16 @@ public class Gitlet implements Serializable
 
 		// if fileName is in staging folder
 		// remove it from staging folder
-		if (inStagingDir(STAGING_DIR, fileName))
+		if (inStagingDir.contains(fileName))
 		{
 			unstageFile(STAGING_DIR, fileName);
-
-			System.out.println("file unstaged");
+			inStagingDir.remove(fileName);
 		}
 
 		// put it in untrack HashSet
 		else if (!untrack.contains(fileName))
 		{
 			untrack.add(fileName);
-			System.out.println("file untracked");
 		}
 		else
 		{
@@ -256,19 +259,7 @@ public class Gitlet implements Serializable
 		}
 		return false;
 	}
-
-	private static boolean inStagingDir(File currentDir, String fileName)
-	{
-		for (File file : currentDir.listFiles())
-		{
-			if (!file.isDirectory() && file.getName().equals(fileName))
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-
+	
 	public static void copyFileUsingFileChannels(File source, File dest) throws IOException
 	{
 		FileChannel inputChannel = null;
@@ -294,7 +285,7 @@ public class Gitlet implements Serializable
 			System.out.println("Cannot merge a branch with itself.");
 			return;
 		}
-		
+
 		// modified for rebase
 		GitletNode splitPoint = getSplitPoint(currentBranch, branchName, false);
 		ArrayList<String> modifiedHere = branches.get(currentBranch).getModifiedFiles(splitPoint);
@@ -319,18 +310,21 @@ public class Gitlet implements Serializable
 			commit("Merged " + currentBranch + " with " + branchName);
 	}
 
-		// modified for rebase
-	private GitletNode getSplitPoint(String currentBranch, String givenBranch,
-			boolean isRebasing) {
+	// modified for rebase
+	private GitletNode getSplitPoint(String currentBranch, String givenBranch, boolean isRebasing)
+	{
 		GitletNode currentBranchNode = branches.get(currentBranch);
 		GitletNode givenBranchNode = branches.get(givenBranch);
-		while (currentBranchNode != givenBranchNode) {
+		while (currentBranchNode != givenBranchNode)
+		{
 			if (currentBranchNode.getID() < givenBranchNode.getID())
 				givenBranchNode = givenBranchNode.getPrevCommit();
-			else {
+			else
+			{
 
 				// modified for rebase
-				if (isRebasing) {
+				if (isRebasing)
+				{
 					nodesToRebase.add(currentBranchNode);
 				}
 
@@ -400,11 +394,15 @@ public class Gitlet implements Serializable
 	{
 		if (branches.containsKey(name))
 		{
-			if(name.equals(currentBranch)){
+			if (name.equals(currentBranch))
+			{
 				System.out.println("No need to checkout the current branch.");
-			} else {
+			}
+			else
+			{
 				GitletNode curr = branches.get(name);
-				for(String file: curr.getFiles()){
+				for (String file : curr.getFiles())
+				{
 					File requestedFile = curr.getFile(file);
 					File toWorkingDir = new File(requestedFile.getName());
 					copyFileUsingFileChannels(requestedFile, toWorkingDir);
@@ -414,12 +412,15 @@ public class Gitlet implements Serializable
 		}
 		else
 		{
-			GitletNode curr = branches.get(currentBranch);		
+			GitletNode curr = branches.get(currentBranch);
 			File toWorkingDir = new File(name);
 			File requestedFile = curr.getFile(name);
-			if(requestedFile == null){
+			if (requestedFile == null)
+			{
 				System.out.println("File does not exist in the most recent commit, or no such branch exists.");
-			} else {
+			}
+			else
+			{
 				copyFileUsingFileChannels(requestedFile, toWorkingDir);
 			}
 		}
@@ -479,8 +480,8 @@ public class Gitlet implements Serializable
 		// then move current branch's head to point to node
 		branches.put(currentBranch, toReset);
 	}
-	
-		// modified for rebase
+
+	// modified for rebase
 
 	/**
 	 * rebase the current branch to the given branch by getting the history
@@ -493,19 +494,23 @@ public class Gitlet implements Serializable
 	 *            branch name for the current branch to rebase to
 	 * @throws IOException
 	 */
-	public void rebase(String branchName) throws IOException {
-		if (!branches.containsKey(branchName)) {
+	public void rebase(String branchName) throws IOException
+	{
+		if (!branches.containsKey(branchName))
+		{
 			System.out.println("A branch with that name does not exist.");
 			return;
 		}
-		if (currentBranch.equals(branchName)) {
+		if (currentBranch.equals(branchName))
+		{
 			System.out.println("Cannot rebase a branch onto itself.");
 			return;
 		}
 
 		GitletNode givenBranchHead = branches.get(branchName);
 		GitletNode currentBranchHead = branches.get(currentBranch);
-		if (inHistoryOfBranch(currentBranchHead, givenBranchHead)) {
+		if (inHistoryOfBranch(currentBranchHead, givenBranchHead))
+		{
 			System.out.println("Already up-to-date.");
 			return;
 		}
@@ -513,7 +518,8 @@ public class Gitlet implements Serializable
 		// special case:
 		// if current branch's head is in history of given branch's head,
 		// just move current branch to point to give branch's commit
-		if (inHistoryOfBranch(givenBranchHead, currentBranchHead)) {
+		if (inHistoryOfBranch(givenBranchHead, currentBranchHead))
+		{
 			branches.put(currentBranch, givenBranchHead);
 			return;
 		}
@@ -529,7 +535,8 @@ public class Gitlet implements Serializable
 
 		// get modified files of currentBranchHead
 		// to propagate the modified files
-		while (!nodesToRebase.isEmpty()) {
+		while (!nodesToRebase.isEmpty())
+		{
 
 			// next node to be rebase
 			GitletNode nextToRebase = nodesToRebase.pop();
@@ -555,30 +562,29 @@ public class Gitlet implements Serializable
 
 			// copy all the files from nextToRebase into new replay commit
 			copyAllFilesTo(nextToRebase, currentBranchHead);
-			
-			ArrayList<String> nonModified = currentBranchHead
-					.getNonModifiedFiles();
-			for (File currentHeadModifiedFile : givenBranchHead
-					.getModifiedFilesForRebase(splitPoint)) {
+
+			ArrayList<String> nonModified = currentBranchHead.getNonModifiedFiles();
+			for (File currentHeadModifiedFile : givenBranchHead.getModifiedFilesForRebase(splitPoint))
+			{
 				// compare each given branch head node's modified file with
 				// non-modified files of current branch head
 				// if any is a match, then copy given branch head node's
 				// modified
 				// file into current branch head's folder as a modified file
-				for (String fileName : nonModified) {
-					if (currentHeadModifiedFile.getName().equals(fileName)) {
+				for (String fileName : nonModified)
+				{
+					if (currentHeadModifiedFile.getName().equals(fileName))
+					{
 
 						// needs the path of currentHeadModifiedFile
 						File source = currentHeadModifiedFile;
-						File dest = new File(".gitlet//commits//"
-								+ currentBranchHead.getID() + "//" + fileName);
+						File dest = new File(".gitlet//commits//" + currentBranchHead.getID() + "//" + fileName);
 						copyFileUsingFileChannels(source, dest);
 					}
 				}
 			}
 			firstReplayCommit = false;
 		}
-
 
 		// finally, reset to node at the front of the replayed branch, which
 		// should be the latest commit ID
@@ -587,9 +593,9 @@ public class Gitlet implements Serializable
 
 	// modified for rebase
 
-	public void rebaseCommit(String message, GitletNode prevCommit) {
-		GitletNode commitNode = new GitletNode(message, numberOfCommit,
-				prevCommit);
+	public void rebaseCommit(String message, GitletNode prevCommit)
+	{
+		GitletNode commitNode = new GitletNode(message, numberOfCommit, prevCommit);
 
 		numberOfCommit++;
 		tableOfCommitID.put(Integer.toString(commitNode.getID()), commitNode);
@@ -612,11 +618,13 @@ public class Gitlet implements Serializable
 	 *            node to compare with
 	 * @return true if toCompare is in the history of toTraverse
 	 */
-	private static boolean inHistoryOfBranch(GitletNode toTraverse,
-			GitletNode toCompare) {
+	private static boolean inHistoryOfBranch(GitletNode toTraverse, GitletNode toCompare)
+	{
 		GitletNode checkPrevCommit = toTraverse;
-		while (checkPrevCommit != null) {
-			if (checkPrevCommit == toCompare) {
+		while (checkPrevCommit != null)
+		{
+			if (checkPrevCommit == toCompare)
+			{
 				return true;
 			}
 			checkPrevCommit = checkPrevCommit.getPrevCommit();
@@ -626,15 +634,16 @@ public class Gitlet implements Serializable
 	}
 
 	// modified for rebase
-	private void copyAllFilesTo(GitletNode from, GitletNode to)
-			throws IOException {
+	private void copyAllFilesTo(GitletNode from, GitletNode to) throws IOException
+	{
 		ArrayList<String> files = from.getFiles();
-		for (String fileName : files) {
+		for (String fileName : files)
+		{
 			to.addFile(fileName);
 		}
-		for (File file : from.getFolder().listFiles()) {
-			File dest = new File(".gitlet//commits//" + to.getID() + "//"
-					+ file.getName());
+		for (File file : from.getFolder().listFiles())
+		{
+			File dest = new File(".gitlet//commits//" + to.getID() + "//" + file.getName());
 			copyFileUsingFileChannels(file, dest);
 		}
 	}
@@ -738,14 +747,21 @@ public class Gitlet implements Serializable
 					e.printStackTrace();
 				}
 			}
-		}else if (args[0].equals("rebase")) {
-			try {
+		}
+		else if (args[0].equals("rebase"))
+		{
+			try
+			{
 				gitlet.rebase(args[1]);
-			} catch (IOException e1) {
+			}
+			catch (IOException e1)
+			{
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-		} else if (args[0].equals("global-log")) {
+		}
+		else if (args[0].equals("global-log"))
+		{
 			gitlet.global_log();
 		}
 		else
