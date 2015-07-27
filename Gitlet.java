@@ -20,7 +20,7 @@ public class Gitlet implements Serializable
 	private HashMap<String, LinkedList<GitletNode>>	commits;
 	private final File								STAGING_DIR	= new File(".gitlet/staging");
 	private final File								COMMIT_DIR	= new File(".gitlet/commits");
-	private LinkedList<String> inStagingDir;
+	private LinkedList<String>						inStagingDir;
 	private HashSet<String>							untrack;
 	private String									currentBranch;
 	public boolean									isConflicting;								// specific
@@ -111,7 +111,7 @@ public class Gitlet implements Serializable
 	private void moveFromStagingToNewCommit(GitletNode node) throws IOException
 	{
 		File newCommit = node.getFolder();
-		while(!inStagingDir.isEmpty())
+		while (!inStagingDir.isEmpty())
 		{
 			String fileName = inStagingDir.pop();
 			File file = new File(STAGING_DIR, fileName);
@@ -259,7 +259,7 @@ public class Gitlet implements Serializable
 		}
 		return false;
 	}
-	
+
 	public static void copyFileUsingFileChannels(File source, File dest) throws IOException
 	{
 		FileChannel inputChannel = null;
@@ -292,13 +292,15 @@ public class Gitlet implements Serializable
 		ArrayList<String> modifiedThere = branches.get(branchName).getModifiedFiles(splitPoint);
 		for (String s : modifiedThere)
 			if (!modifiedHere.contains(s))
-				add(branches.get(branchName).getFile(s).getAbsolutePath());
+				addForMerge(branchName, branches.get(branchName).getFile(s));
 			else
 			{
 				isConflicting = true;
-				File toStage = new File("/.gitlet/staging/", s + ".conflicting");
+				File toStage = new File(".gitlet/staging/", s + ".conflicting");
 				try
 				{
+					toStage.createNewFile();
+					inStagingDir.add(s + ".conflicting");
 					copyFileUsingFileChannels(branches.get(branchName).getFile(s), toStage);
 				}
 				catch (IOException e)
@@ -310,6 +312,20 @@ public class Gitlet implements Serializable
 			commit("Merged " + currentBranch + " with " + branchName);
 	}
 
+	private void addForMerge(String branch, File file)
+	{
+		try
+		{
+			String fileName = file.getPath().substring(branches.get(branch).getFolder().toString().length() + 1);
+			File toStage = new File(STAGING_DIR, fileName);
+			toStage.mkdirs();
+			inStagingDir.add(fileName);
+			copyFileUsingFileChannels(file, toStage);
+		}
+		catch (IOException e)
+		{}
+
+	}
 	// modified for rebase
 	private GitletNode getSplitPoint(String currentBranch, String givenBranch, boolean isRebasing)
 	{
@@ -474,7 +490,7 @@ public class Gitlet implements Serializable
 		// then check out each file tracked by the node
 		for (String fileName : toReset.getFiles())
 		{
-			checkout(fileName, commitID);
+			checkout(commitID, fileName);
 		}
 
 		// then move current branch's head to point to node
@@ -595,6 +611,11 @@ public class Gitlet implements Serializable
 
 	public void rebaseCommit(String message, GitletNode prevCommit)
 	{
+		if (isConflicting)
+		{
+			System.out.println("Cannot do this command until the merge conflict has been resolved.");
+			return;
+		}
 		GitletNode commitNode = new GitletNode(message, numberOfCommit, prevCommit);
 
 		numberOfCommit++;
@@ -761,9 +782,17 @@ public class Gitlet implements Serializable
 			}
 		}
 		else if (args[0].equals("global-log"))
-		{
 			gitlet.global_log();
-		}
+		else if (args[0].equals("reset"))
+			try
+			{
+				gitlet.reset(args[1]);
+			}
+			catch (IOException e1)
+			{
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 		else
 			System.out.println("No command with that name exists.");
 		try
