@@ -148,6 +148,14 @@ public class Gitlet implements Serializable
 				node.addFile(fileName);
 	}
 
+	/**
+	 * prints the ID of the commit that has the given message, if there multiple
+	 * commits with the given message, then print each of their IDs on a
+	 * different line
+	 * 
+	 * @param commitMessage
+	 * 				to find the IDs of the commit with the given message
+	 */
 	public void find(String commitMessage)
 	{
 		LinkedList<GitletNode> nodes = commits.get(commitMessage);
@@ -159,13 +167,17 @@ public class Gitlet implements Serializable
 		for (GitletNode node : nodes)
 			System.out.println(node.getID());
 	}
-
+	/**
+	 * prints the history of the current branch's head commit
+	 */
 	public void log()
 	{
 		branches.get(currentBranch).printLog();
 	}
 
-	// fixed
+	/**
+	 * displays information of all the commits ever made
+	 */
 	public void global_log()
 	{
 		for (GitletNode node : tableOfCommitID.values())
@@ -257,7 +269,14 @@ public class Gitlet implements Serializable
 		}
 
 	}
-
+	/**
+	 * remove the file from the staging folder
+	 * 
+	 * @param currentDir
+	 *            path of the staging folder
+	 * @param fileName
+	 *            name of file to be removed
+	 */
 	private static void unstageFile(File currentDir, String fileName)
 	{
 		for (File file : currentDir.listFiles())
@@ -269,7 +288,15 @@ public class Gitlet implements Serializable
 			}
 		}
 	}
-
+	/**
+	 * checks if a file is currently in the current branch's head commit
+	 * 
+	 * @param currentDir
+	 *            path to the current branch's head commit
+	 * @param fileName
+	 *            name of file to be checked
+	 * @return true if file is in the current branch's head commit
+	 */
 	private static boolean inHeadCommit(File currentDir, String fileName)
 	{
 		for (File file : currentDir.listFiles())
@@ -281,7 +308,15 @@ public class Gitlet implements Serializable
 		}
 		return false;
 	}
-
+	/**
+	 * helping method to copy files from source to dest
+	 * 
+	 * @param source
+	 *            path of the source of the file to be copied
+	 * @param dest
+	 *            path of the destination of where the file should by copied to
+	 * @throws IOException
+	 */
 	public static void copyFileUsingFileChannels(File source, File dest) throws IOException
 	{
 		FileChannel inputChannel = null;
