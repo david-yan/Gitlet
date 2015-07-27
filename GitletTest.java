@@ -443,5 +443,31 @@ public class GitletTest
 				"initial commit" }, extractCommitMessages(logOutput));
 
 	}
-
+	
+	@Test
+	public void testRemove(){
+		String fileName = TESTING_DIR + "test.txt";
+		String testFile = "Hello world, testing Gitlet";
+		createFile(fileName, testFile);
+		gitletFast("init");
+		
+		outContent.reset();
+		gitletFast("rm", "test.txt");
+		assertEquals(outContent.toString().trim(), "No reason to remove the file.");
+		
+		File f = new File(GITLET_DIR + "staging/" + fileName);
+		gitletFast("add", fileName);
+		assertTrue(f.exists());
+		gitletFast("rm", fileName);
+		assertFalse(f.exists());
+		gitletFast("add", fileName);
+		gitletFast("commit", "added test.txt");
+		f = new File(GITLET_DIR + "1/test.txt");
+		assertTrue(f.exists());
+		gitlet("rm", "test.txt");
+		gitlet("commit", "removed test.txt");
+		File commit2 = new File(GITLET_DIR + "2");
+		assertEquals(commit2.list().length, 0);
+		assertTrue(f.exists());
+	}
 }
