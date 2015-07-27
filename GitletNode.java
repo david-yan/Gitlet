@@ -141,9 +141,12 @@ public class GitletNode implements Serializable
 		ArrayList<String> toReturn = new ArrayList<String>();
 		while (current != node)
 		{
-			for (File file : current.getFolder().listFiles())
-				if (!toReturn.contains(file.getName()))
-					toReturn.add(file.getName());
+			for (String fileName : nameOfFiles)
+			{
+				File file = new File(folder, fileName);
+				if (file.exists() && !toReturn.contains(fileName))
+					toReturn.add(fileName);
+			}
 			// fixed
 			current = current.prevCommit;
 		}
@@ -162,7 +165,7 @@ public class GitletNode implements Serializable
 	{
 		if (!nameOfFiles.contains(fileName))
 			return null;
-		File file = new File(".gitlet/commits/" +  commitID + "/" + fileName);
+		File file = new File(".gitlet/commits/" + commitID + "/" + fileName);
 		if (file.exists())
 			return file;
 		return prevCommit.getFile(fileName);
