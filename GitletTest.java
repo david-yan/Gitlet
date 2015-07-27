@@ -360,4 +360,88 @@ public class GitletTest
 		assertEquals(getText(COMMIT_DIR + "2//first_commit.txt"), commit2Text);
 		assertEquals(getText(COMMIT_DIR + "1//first_commit.txt"), commitText);
 	}
+	
+	@Test
+	public void testRebase() {
+		gitlet("init");
+		String firstCommit = "commit 1";
+		String commitText = "This is the first commit";
+		String commitFileName = TESTING_DIR + "first_commit.txt";
+		createFile(commitFileName, commitText);
+		String randomFile = TESTING_DIR + "random.txt";
+		createFile(randomFile, "this is random");
+		gitlet("add", randomFile);
+		gitlet("add", commitFileName);
+		gitlet("commit", firstCommit);
+		
+		assertEquals("", gitlet("branch", "branch"));
+		
+		writeFile(commitFileName, "first commit revised");
+		gitlet("add", commitFileName);
+		
+		gitlet("commit", "commit 2 text modified and random added");
+
+		
+		assertEquals("", gitlet("checkout", "branch"));
+
+		String thirdCommit = "commit 3";
+		String commit3Text = "This is the third commit";
+		String commit3FileName = TESTING_DIR + "third_commit.txt";
+		createFile(commit3FileName, commit3Text);
+
+		gitlet("add", commit3FileName);
+		gitlet("commit", thirdCommit);
+
+		String randomFile2 = TESTING_DIR + "random2.txt";
+		createFile(randomFile2, "this is random #2");
+		gitlet("add", randomFile2);
+		gitlet("commit", "commit# 4 random2.txt added");
+		
+		assertEquals("", gitlet("rebase", "master"));
+
+	}
+
+	@Test
+	public void testBranch() {
+		gitlet("init");
+		String firstCommit = "commit 1";
+		String commitText = "This is the first commit";
+		String commitFileName = TESTING_DIR + "first_commit.txt";
+		createFile(commitFileName, commitText);
+		gitlet("add", commitFileName);
+		gitlet("commit", firstCommit);
+		String logOutput = gitlet("log");
+		assertArrayEquals(new String[] { firstCommit, "initial commit" },
+				extractCommitMessages(logOutput));
+		// test to see if the branch name we're trying to create already exist
+		assertEquals("A branch with that name already exists.",
+				gitlet("branch", "master"));
+		gitlet("branch", "branch1");
+		String secondCommit = "commit 2";
+		String commit2Text = "This is the second commit";
+		String commit2FileName = TESTING_DIR + "second_commit.txt";
+		createFile(commit2FileName, commit2Text);
+		gitlet("add", commit2FileName);
+		gitlet("commit", secondCommit);
+		logOutput = gitlet("log");
+		assertArrayEquals(new String[] { secondCommit, firstCommit,
+				"initial commit" }, extractCommitMessages(logOutput));
+		// test branch doesn't exist, should also print that file doesn't
+		// exist
+		assertEquals(
+				"File does not exist in the most recent commit, or no such branch exists.",
+				gitlet("checkout", "branch2"));
+		gitlet("checkout", "branch1");
+		String thirdCommit = "commit 3";
+		String commit3Text = "This is the third commit";
+		String commit3FileName = TESTING_DIR + "third_commit.txt";
+		createFile(commit3FileName, commit3Text);
+		gitlet("add", commit3FileName);
+		gitlet("commit", thirdCommit);
+		logOutput = gitletFast("log");
+		assertArrayEquals(new String[] { thirdCommit, firstCommit,
+				"initial commit" }, extractCommitMessages(logOutput));
+
+	}
+
 }
