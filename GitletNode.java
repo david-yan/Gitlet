@@ -96,10 +96,8 @@ public class GitletNode implements Serializable
 	{
 		return commitMessage;
 	}
-	
 	/**
-	 * Gets all of the files associated with the commit
-	 * @return ArrayList of all files associated with the commmit
+	 * @return list of all files associated with this commit
 	 */
 	public ArrayList<String> getFiles()
 	{
@@ -108,7 +106,9 @@ public class GitletNode implements Serializable
 
 	/**
 	 * Add file name to the list of files.
-	 * @param fileName - the String of the name of the file to add
+	 * 
+	 * @param fileName
+	 *            Name of file to add
 	 */
 	public void addFile(String fileName)
 	{
@@ -116,8 +116,7 @@ public class GitletNode implements Serializable
 	}
 
 	/**
-	 * Returns the folder of the commit (for example .gitlet/commits/2)
-	 * @return - File of the folder of this commit
+	 * @return File of the folder of this commit
 	 */
 	public File getFolder()
 	{
@@ -138,16 +137,19 @@ public class GitletNode implements Serializable
 			for (File file : current.getFolder().listFiles())
 				if (!toReturn.contains(file.getName()))
 					toReturn.add(file);
+			// fixed
 			current = current.prevCommit;
 		}
 		return toReturn;
 	}
 
 	/**
-	 * Gets the LinkedList of the names of all of the files that have been
+	 * Gets the ArrayList of the names of all of the files that have been
 	 * modified since the node
-	 * @param GitletNode - the node to be compared with
-	 * @return LinkedList - list of names of modified files
+	 * 
+	 * @param node
+	 *            The node to be compared with
+	 * @return List of names of modified files
 	 */
 	public LinkedList<String> getModifiedFiles(GitletNode node)
 	{
@@ -161,6 +163,7 @@ public class GitletNode implements Serializable
 				if (file.exists() && !toReturn.contains(fileName))
 					toReturn.add(fileName);
 			}
+			// fixed
 			current = current.prevCommit;
 		}
 		return toReturn;
@@ -168,7 +171,9 @@ public class GitletNode implements Serializable
 
 	/**
 	 * Finds and returns the file with the given name
-	 * @param fileName - the name of the file to be returned
+	 * 
+	 * @param fileName
+	 *            : The name of the file to be returned
 	 * @return Most recent occurrence of the file or null if the file does not
 	 *         exist
 	 */
