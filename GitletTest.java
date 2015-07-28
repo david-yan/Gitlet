@@ -103,19 +103,19 @@ public class GitletTest
 	 * Tests that checking out a file name will restore the version of the file
 	 * from the previous commit. Involves init, add, commit, and checkout.
 	 */
-//	@Test
-//	public void testBasicCheckout()
-//	{
-//		String wugFileName = TESTING_DIR + "wug.txt";
-//		String wugText = "This is a wug.";
-//		createFile(wugFileName, wugText);
-//		gitlet("init");
-//		gitlet("add", wugFileName);
-//		gitlet("commit", "added wug");
-//		writeFile(wugFileName, "This is not a wug.");
-//		gitlet("checkout", wugFileName);
-//		assertEquals(wugText, getText(wugFileName));
-//	}
+	@Test
+	public void testBasicCheckout()
+	{
+		String wugFileName = TESTING_DIR + "wug.txt";
+		String wugText = "This is a wug.";
+		createFile(wugFileName, wugText);
+		gitlet("init");
+		gitlet("add", wugFileName);
+		gitlet("commit", "added wug");
+		writeFile(wugFileName, "This is not a wug.");
+		gitlet("checkout", wugFileName);
+		assertEquals(wugText, getText(wugFileName));
+	}
 
 	/**
 	 * Tests that log after one commit conforms to the format in the spec.
@@ -469,5 +469,80 @@ public class GitletTest
 		File commit2 = new File(GITLET_DIR + "2");
 		assertEquals(commit2.list().length, 0);
 		assertTrue(f.exists());
+	}
+	
+	@Test
+	public void testBranch(){
+		String fileName = TESTING_DIR + "test.txt";
+		String testFile = "Hello world, testing Gitlet";
+		createFile(fileName, testFile);
+		gitlet("init");
+		gitlet("add", fileName);
+		gitlet("commit", "added test.txt");
+		
+		writeFile(fileName, "Hey world, wassup");
+		gitlet("add", fileName);
+		gitlet("commit", "updated test.txt");
+		gitlet("branch", "new-world");
+		gitlet("checkout", "new-world");
+		
+		writeFile(fileName, "A whole new world...");
+		gitlet("add", fileName);
+		gitlet("commit", "new world begins");
+		gitlet("checkout", "master");
+	
+		writeFile(fileName, "back to the old world...");
+		gitlet("add", fileName);
+		gitlet("commit", "updates on updates");
+		String logContent = gitlet("log");
+		assertArrayEquals(new String[] {"updates on updates", "updated test.txt", "added test.txt", "initial commit"}, extractCommitMessages(logContent));
+		
+	}
+	
+	/**
+	 * Tests commit functionalities and error cases. Makes sure the staging area
+	 * is empty after a commit.
+	 */
+	@Test
+	public void testCommit(){
+		String fileName = TESTING_DIR + "test.txt";
+		String testFile = "Hello world, testing Gitlet";
+		createFile(fileName, testFile);
+		gitlet("init");
+		gitlet("add", fileName);
+		
+		outContent.reset();
+		gitlet("commit");
+		assertEquals(outContent.toString().trim(), "Please enter a commit message.");
+		
+		gitlet("commit", "added test.txt");
+		File f = new File(GITLET_DIR + "commits/1/");
+		assertTrue(f.exists());
+		
+		File staging = new File(GITLET_DIR + "staging/");
+		assertEquals(staging.list().length, 0);
+		
+		outContent.reset();
+		gitlet("commit", "shouldn't work");
+		assertEquals(outContent.toString().trim(), "No changes added to the commit.");
+	}
+	
+	/**
+	 * Tests add, making sure that the file is added to the staging folder. Also checks if an 
+	 * error message is printed if there is no file with the name
+	 */
+	@Test
+	public void testAdd(){
+		String fileName = TESTING_DIR + "test.txt";
+		String testFile = "Hello world, testing Gitlet";
+		createFile(fileName, testFile);
+		gitlet("init");
+		gitlet("add", fileName);
+		File f = new File(GITLET_DIR + "staging/" + fileName);
+		assertTrue(f.exists());
+		
+		outContent.reset();
+		gitlet("add", "doesnotexist.txt");
+		assertEquals(outContent.toString().trim(), "File does not exist.");
 	}
 }
