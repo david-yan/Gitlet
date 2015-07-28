@@ -342,7 +342,6 @@ public class Gitlet implements Serializable {
 					copyFileUsingFileChannels(
 							branches.get(branchName).getFile(s), toStage);
 				} catch (IOException e) {
-					e.printStackTrace();
 				}
 			}
 		if (!isConflicting)
