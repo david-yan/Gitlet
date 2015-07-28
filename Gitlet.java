@@ -98,7 +98,7 @@ public class Gitlet implements Serializable
 			}
 			catch (IOException e)
 			{
-				e.printStackTrace();
+				
 			}
 		}
 
@@ -229,7 +229,7 @@ public class Gitlet implements Serializable
 		}
 		catch (IOException e)
 		{
-			e.printStackTrace();
+			
 		}
 
 	}
@@ -264,10 +264,6 @@ public class Gitlet implements Serializable
 		else if (!untrack.contains(fileName))
 		{
 			untrack.add(fileName);
-		}
-		else
-		{
-			System.out.println("called rm but nothing happened");
 		}
 
 	}
@@ -350,7 +346,7 @@ public class Gitlet implements Serializable
 				}
 				catch (IOException e)
 				{
-					e.printStackTrace();
+					
 				}
 			}
 		if (!isConflicting)
@@ -768,7 +764,7 @@ public class Gitlet implements Serializable
 				}
 				catch (IOException e)
 				{
-					e.printStackTrace();
+					
 				}
 			}
 			else if (args.length == 3)
@@ -779,7 +775,7 @@ public class Gitlet implements Serializable
 				}
 				catch (IOException e)
 				{
-					e.printStackTrace();
+					
 				}
 			}
 		}
@@ -804,8 +800,6 @@ public class Gitlet implements Serializable
 			}
 			catch (IOException e1)
 			{
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
 			}
 		else
 			System.out.println("No command with that name exists.");
@@ -819,7 +813,7 @@ public class Gitlet implements Serializable
 		}
 		catch (IOException e)
 		{
-			e.printStackTrace();
+			
 		}
 	}
 }
