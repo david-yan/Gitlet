@@ -787,8 +787,6 @@ public class Gitlet implements Serializable
 			}
 			catch (IOException e1)
 			{
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
 			}
 		}
 		else if (args[0].equals("global-log"))
