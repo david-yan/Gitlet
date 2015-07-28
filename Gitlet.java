@@ -328,6 +328,16 @@ public class Gitlet implements Serializable
 		outputChannel.close();
 	}
 
+	/**
+	 * merge files from the given branch into the current branch; finds the
+	 * splitting point ( a commit ) which both the current branch and the given
+	 * branch shares as its previous node, and check each corresponding commit
+	 * after the splitting point for modified files in order to process the
+	 * modified files for the new merged commit
+	 * 
+	 * @param branchName
+	 *            branch name to merge files with from the current branch
+	 */
 	public void merge(String branchName)
 	{
 		// check to see if branch exists
@@ -368,7 +378,14 @@ public class Gitlet implements Serializable
 		if (!isConflicting)
 			commit("Merged " + currentBranch + " with " + branchName);
 	}
-
+	/**
+	 * Used for merge and rebase; adds the files to given branch name
+	 * 
+	 * @param branch
+	 *            given branch name
+	 * @param file
+	 *            the file to be added
+	 */
 	private void addForMergeAndRebase(String branch, File file)
 	{
 		try
@@ -383,7 +400,19 @@ public class Gitlet implements Serializable
 		{}
 
 	}
-	// modified for rebase
+	/**
+	 * Gets the commit that both the current branch and the given branch's head
+	 * commits have in common in both their histories
+	 * 
+	 * @param currentBranch
+	 *            current branch name
+	 * @param givenBranch
+	 *            given branch name
+	 * @param isRebasing
+	 *            if we are calling this for rebasing, if so, saves all the
+	 *            commits that was traversed
+	 * @return split point commit of both branches's commit
+	 */
 	private GitletNode getSplitPoint(String currentBranch, String givenBranch, boolean isRebasing)
 	{
 		GitletNode currentBranchNode = branches.get(currentBranch);
@@ -404,6 +433,10 @@ public class Gitlet implements Serializable
 		return currentBranchNode;
 	}
 
+	/**
+	 * displays what branches current exist, * for the current branch, and what
+	 * files have been staged or marked for untracking
+	 */
 	public void status()
 	{
 		System.out.println("=== Branches ===");
