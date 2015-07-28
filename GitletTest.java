@@ -1,6 +1,4 @@
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -27,8 +25,8 @@ public class GitletTest
 {
 	private static final String	GITLET_DIR		= ".gitlet/";
 	private static final String	TESTING_DIR		= "test_files/";
-	private static final String COMMIT_DIR = ".gitlet//commits//";
-	private static final String STAGING_DIR = ".gitlet/staging/";
+	private static final String	COMMIT_DIR		= ".gitlet/commits/";
+	private static final String	STAGING_DIR		= ".gitlet/staging/";
 
 	/* matches either unix/mac or windows line separators */
 	private static final String	LINE_SEPARATOR	= "\r\n|[\r\n]";
@@ -49,7 +47,8 @@ public class GitletTest
 			try
 			{
 				recursiveDelete(f);
-			} catch (IOException e)
+			}
+			catch (IOException e)
 			{
 				e.printStackTrace();
 			}
@@ -60,7 +59,8 @@ public class GitletTest
 			try
 			{
 				recursiveDelete(f);
-			} catch (IOException e)
+			}
+			catch (IOException e)
 			{
 				e.printStackTrace();
 			}
@@ -174,8 +174,10 @@ public class GitletTest
 	 * anything _while_ it runs through this command, though it will print out
 	 * things at the end of this command. It will also return what it prints as
 	 * a string.
+	 * 
+	 * @throws IOException
 	 */
-	private static String gitletFast(String... args)
+	private static String gitletFast(String... args) throws IOException
 	{
 		PrintStream originalOut = System.out;
 		ByteArrayOutputStream printingResults = new ByteArrayOutputStream();
@@ -188,7 +190,8 @@ public class GitletTest
 			 */
 			System.setOut(new PrintStream(printingResults));
 			Gitlet.main(args);
-		} finally
+		}
+		finally
 		{
 			/*
 			 * Restores System.out (So you can print normally).
@@ -202,13 +205,14 @@ public class GitletTest
 	/**
 	 * Returns the text from a standard text file.
 	 */
-	private static String getText(String fileName)
+	public static String getText(String fileName)
 	{
 		try
 		{
 			byte[] encoded = Files.readAllBytes(Paths.get(fileName));
 			return new String(encoded, StandardCharsets.UTF_8);
-		} catch (IOException e)
+		}
+		catch (IOException e)
 		{
 			return "";
 		}
@@ -218,7 +222,7 @@ public class GitletTest
 	 * Creates a new file with the given fileName and gives it the text
 	 * fileText.
 	 */
-	private static void createFile(String fileName, String fileText)
+	public static void createFile(String fileName, String fileText)
 	{
 		File f = new File(fileName);
 		if (!f.exists())
@@ -226,7 +230,8 @@ public class GitletTest
 			try
 			{
 				f.createNewFile();
-			} catch (IOException e)
+			}
+			catch (IOException e)
 			{
 				e.printStackTrace();
 			}
@@ -237,7 +242,7 @@ public class GitletTest
 	/**
 	 * Replaces all text in the existing file with the given text.
 	 */
-	private static void writeFile(String fileName, String fileText)
+	public static void writeFile(String fileName, String fileText)
 	{
 		FileWriter fw = null;
 		try
@@ -245,15 +250,18 @@ public class GitletTest
 			File f = new File(fileName);
 			fw = new FileWriter(f, false);
 			fw.write(fileText);
-		} catch (IOException e)
+		}
+		catch (IOException e)
 		{
 			e.printStackTrace();
-		} finally
+		}
+		finally
 		{
 			try
 			{
 				fw.close();
-			} catch (IOException e)
+			}
+			catch (IOException e)
 			{
 				e.printStackTrace();
 			}
@@ -265,7 +273,7 @@ public class GitletTest
 	 * 
 	 * @throws IOException
 	 */
-	private static void recursiveDelete(File d) throws IOException
+	public static void recursiveDelete(File d) throws IOException
 	{
 		if (d.isDirectory())
 		{
@@ -322,183 +330,17 @@ public class GitletTest
 				}
 				return results.toString();
 			}
-		} catch (IOException e)
+		}
+		catch (IOException e)
 		{
 			return e.getMessage();
-		} catch (InterruptedException e)
+		}
+		catch (InterruptedException e)
 		{
 			return e.getMessage();
 		}
 	}
 
-	@Test
-	public void testCommit()
-	{
-		gitlet("init");
-		String firstCommit = "commit 1";
-		String commitText = "This is the first commit";
-		String commitFileName = TESTING_DIR + "first_commit.txt";
-		createFile(commitFileName, commitText);
-		gitlet("add", commitFileName);
-		gitlet("commit", firstCommit);
-		String logOutput = gitlet("log");
-		assertArrayEquals(new String[] {firstCommit, "initial commit"}, extractCommitMessages(logOutput));
-		String secondCommit = "commit 2";
-		String commit2Text = "This is the second commit";
-		String commit2FileName = TESTING_DIR + "second_commit.txt";
-		assertTrue(new File(COMMIT_DIR + "1//first_commit.txt").exists());
-		gitlet("add", COMMIT_DIR + "1//first_commit.txt");
-		writeFile(STAGING_DIR + "first_commit.txt", commit2Text);
-		createFile(commit2FileName, commit2Text);
-		gitlet("add", commit2FileName);
-		gitlet("commit", secondCommit);
-		logOutput = gitlet("log");
-		assertArrayEquals(new String[] {secondCommit, firstCommit, "initial commit"}, extractCommitMessages(logOutput));
-		assertTrue(new File(COMMIT_DIR + "2//first_commit.txt").exists());
-		assertTrue(new File(COMMIT_DIR + "2//second_commit.txt").exists());
-		assertEquals(getText(COMMIT_DIR + "2//second_commit.txt"), commit2Text);
-		assertEquals(getText(COMMIT_DIR + "2//first_commit.txt"), commit2Text);
-		assertEquals(getText(COMMIT_DIR + "1//first_commit.txt"), commitText);
-	}
-	
-	@Test
-	public void testRebase() {
-		gitlet("init");
-		String firstCommit = "commit 1";
-		String commitText = "This is the first commit";
-		String commitFileName = TESTING_DIR + "first_commit.txt";
-		createFile(commitFileName, commitText);
-		String randomFile = TESTING_DIR + "random.txt";
-		createFile(randomFile, "this is random");
-		gitlet("add", randomFile);
-		gitlet("add", commitFileName);
-		gitlet("commit", firstCommit);
-		
-		assertEquals("", gitlet("branch", "branch"));
-		
-		writeFile(commitFileName, "first commit revised");
-		gitlet("add", commitFileName);
-		
-		gitlet("commit", "commit 2 text modified and random added");
-
-		
-		assertEquals("", gitlet("checkout", "branch"));
-
-		String thirdCommit = "commit 3";
-		String commit3Text = "This is the third commit";
-		String commit3FileName = TESTING_DIR + "third_commit.txt";
-		createFile(commit3FileName, commit3Text);
-
-		gitlet("add", commit3FileName);
-		gitlet("commit", thirdCommit);
-
-		String randomFile2 = TESTING_DIR + "random2.txt";
-		createFile(randomFile2, "this is random #2");
-		gitlet("add", randomFile2);
-		gitlet("commit", "commit# 4 random2.txt added");
-		
-		assertEquals("", gitlet("rebase", "master"));
-
-	}
-
-	@Test
-	public void testBranch() {
-		gitlet("init");
-		String firstCommit = "commit 1";
-		String commitText = "This is the first commit";
-		String commitFileName = TESTING_DIR + "first_commit.txt";
-		createFile(commitFileName, commitText);
-		gitlet("add", commitFileName);
-		gitlet("commit", firstCommit);
-		String logOutput = gitlet("log");
-		assertArrayEquals(new String[] { firstCommit, "initial commit" },
-				extractCommitMessages(logOutput));
-		// test to see if the branch name we're trying to create already exist
-		assertEquals("A branch with that name already exists.",
-				gitlet("branch", "master"));
-		gitlet("branch", "branch1");
-		String secondCommit = "commit 2";
-		String commit2Text = "This is the second commit";
-		String commit2FileName = TESTING_DIR + "second_commit.txt";
-		createFile(commit2FileName, commit2Text);
-		gitlet("add", commit2FileName);
-		gitlet("commit", secondCommit);
-		logOutput = gitlet("log");
-		assertArrayEquals(new String[] { secondCommit, firstCommit,
-				"initial commit" }, extractCommitMessages(logOutput));
-		// test branch doesn't exist, should also print that file doesn't
-		// exist
-		assertEquals(
-				"File does not exist in the most recent commit, or no such branch exists.",
-				gitlet("checkout", "branch2"));
-		gitlet("checkout", "branch1");
-		String thirdCommit = "commit 3";
-		String commit3Text = "This is the third commit";
-		String commit3FileName = TESTING_DIR + "third_commit.txt";
-		createFile(commit3FileName, commit3Text);
-		gitlet("add", commit3FileName);
-		gitlet("commit", thirdCommit);
-		logOutput = gitletFast("log");
-		assertArrayEquals(new String[] { thirdCommit, firstCommit,
-				"initial commit" }, extractCommitMessages(logOutput));
-
-	}
-	
-	@Test
-	public void testRemove(){
-		String fileName = TESTING_DIR + "test.txt";
-		String testFile = "Hello world, testing Gitlet";
-		createFile(fileName, testFile);
-		gitletFast("init");
-		
-		outContent.reset();
-		gitletFast("rm", "test.txt");
-		assertEquals(outContent.toString().trim(), "No reason to remove the file.");
-		
-		File f = new File(GITLET_DIR + "staging/" + fileName);
-		gitletFast("add", fileName);
-		assertTrue(f.exists());
-		gitletFast("rm", fileName);
-		assertFalse(f.exists());
-		gitletFast("add", fileName);
-		gitletFast("commit", "added test.txt");
-		f = new File(GITLET_DIR + "1/test.txt");
-		assertTrue(f.exists());
-		gitlet("rm", "test.txt");
-		gitlet("commit", "removed test.txt");
-		File commit2 = new File(GITLET_DIR + "2");
-		assertEquals(commit2.list().length, 0);
-		assertTrue(f.exists());
-	}
-	
-	@Test
-	public void testBranch(){
-		String fileName = TESTING_DIR + "test.txt";
-		String testFile = "Hello world, testing Gitlet";
-		createFile(fileName, testFile);
-		gitlet("init");
-		gitlet("add", fileName);
-		gitlet("commit", "added test.txt");
-		
-		writeFile(fileName, "Hey world, wassup");
-		gitlet("add", fileName);
-		gitlet("commit", "updated test.txt");
-		gitlet("branch", "new-world");
-		gitlet("checkout", "new-world");
-		
-		writeFile(fileName, "A whole new world...");
-		gitlet("add", fileName);
-		gitlet("commit", "new world begins");
-		gitlet("checkout", "master");
-	
-		writeFile(fileName, "back to the old world...");
-		gitlet("add", fileName);
-		gitlet("commit", "updates on updates");
-		String logContent = gitlet("log");
-		assertArrayEquals(new String[] {"updates on updates", "updated test.txt", "added test.txt", "initial commit"}, extractCommitMessages(logContent));
-		
-	}
-	
 	/**
 	 * Tests commit functionalities and error cases. Makes sure the staging area
 	 * is empty after a commit.
@@ -519,12 +361,281 @@ public class GitletTest
 		File f = new File(GITLET_DIR + "commits/1/");
 		assertTrue(f.exists());
 		
-		File staging = new File(GITLET_DIR + "staging/");
+		File staging = new File(STAGING_DIR);
 		assertEquals(staging.list().length, 0);
 		
 		outContent.reset();
 		gitlet("commit", "shouldn't work");
 		assertEquals(outContent.toString().trim(), "No changes added to the commit.");
+	}
+	
+	@Test
+	public void testFileSystem2()
+	{
+		Gitlet gitlet = new Gitlet();
+		String firstCommit = "commit 1";
+		String commitText = "This is the first commit";
+		String commitFileName = "first_commit.txt";
+		createFile(commitFileName, commitText);
+		gitlet.add(commitFileName);
+		gitlet.commit(firstCommit);
+		String commit2Text = "This is the second commit";
+		writeFile("first_commit.txt", commit2Text);
+		gitlet.add("first_commit.txt");
+		gitlet.commit("commit 2");
+		String commit3FileName = "second_commit.txt";
+		String commit3Text = "This is the third commit";
+		createFile(commit3FileName, commit3Text);
+		gitlet.add(commit3FileName);
+		gitlet.commit("commit 3");
+		assertTrue(gitlet.getBranches().containsKey("master"));
+		assertEquals(gitlet.getBranches().get("master").getMessage(), "commit 3");
+		//assertEquals(gitlet.getBranches().get("master").getPrevCommit().getMessage(), "commit 2");
+		assertEquals(gitlet.getBranches().get("master").getPrevCommit().getPrevCommit().getMessage(), "commit 1");
+		assertTrue(gitlet.getBranches().get("master").getFile("second_commit.txt").exists());
+		assertTrue(gitlet.getBranches().get("master").getFile("first_commit.txt").exists());
+		assertEquals(commit2Text, getText(gitlet.getBranches().get("master").getFile("first_commit.txt").getPath()));
+	}
+
+	@Test
+	public void testBranch() throws IOException
+	{
+		Gitlet gitlet = new Gitlet();
+		// create files
+		createFile("first_commit.txt", "This is the first commit");
+		createFile("second_commit.txt", "This is the second commit");
+		createFile("third_commit.txt", "This is the third commit");
+
+		gitlet.add("first_commit.txt");
+		gitlet.commit("commit 1");
+		gitlet.branch("branch");
+
+		assertEquals(gitlet.getCurrentBranch(), "master");
+		assertTrue(gitlet.getBranches().containsKey("branch"));
+		assertEquals(gitlet.getBranches().get("master"), gitlet.getBranches().get("branch"));
+
+		gitlet.checkout("master");
+		assertEquals("No need to checkout the current branch.\n", outContent.toString());
+		outContent.reset();
+
+		gitlet.checkout("branch");
+		assertEquals(gitlet.getCurrentBranch(), "branch");
+		assertTrue(new File("first_commit.txt").exists());
+
+		gitlet.add("second_commit.txt");
+		gitlet.commit("commit 2");
+		gitlet.checkout("second_commit.txt");
+		assertTrue(new File("second_commit.txt").exists());
+
+		gitlet.checkout("master");
+		assertEquals(gitlet.getCurrentBranch(), "master");
+		gitlet.add("third_commit.txt");
+		gitlet.commit("commit 3");
+		outContent.reset();
+		gitlet.checkout("second_commit.txt");
+		assertEquals("File does not exist in the most recent commit, or no such branch exists.\n", outContent.toString());
+		outContent.reset();
+		gitlet.checkout("third_commit.txt");
+		assertEquals("", outContent.toString());
+		assertTrue(new File("third_commit.txt").exists());
+		outContent.reset();
+		gitlet.log();
+		assertArrayEquals(extractCommitMessages(outContent.toString()), new String[] { "commit 3", "commit 1", "initial commit" });
+	}
+
+	@Test
+	public void testCopy()
+	{
+		createFile(TESTING_DIR + "a.txt", "a");
+		File file = new File(TESTING_DIR + "/folder");
+		file.mkdir();
+		createFile(TESTING_DIR + "/folder/a.txt", "b");
+		assertTrue(new File(TESTING_DIR + "a.txt").exists());
+		assertTrue(file.exists() && file.isDirectory());
+		// assertEquals(new File(TESTING_DIR +
+		// "/folder/a.txt").getPath().toString(), TESTING_DIR + "/folder");
+		try
+		{
+			Files.copy(new File(file, "a.txt").toPath(), new File(STAGING_DIR + "/folder/a.txt").toPath());
+			Files.copy(new File(TESTING_DIR, "a.txt").toPath(), new File(STAGING_DIR, "a.txt").toPath());
+			assertTrue(new File(STAGING_DIR + "/folder/a.txt").exists());
+			assertTrue(new File(STAGING_DIR, "a.txt").exists());
+			assertEquals("b", getText(STAGING_DIR + "/folder/a.txt"));
+			assertEquals("a", getText(STAGING_DIR + "a.txt"));
+		}
+		catch (IOException e)
+		{
+			// e.printStackTrace();
+		}
+	}
+
+	@Test
+	public void testFileSystem()
+	{
+		Gitlet gitlet = new Gitlet();
+		gitlet.add("a");
+		gitlet.commit("added a");
+		gitlet.add("nest1/a");
+		gitlet.commit("added nest1");
+		gitlet.add("nest1/nest2/nest3/nest4/a");
+		gitlet.commit("added nest4");
+		try
+		{
+			gitlet.checkout("2", "a");
+		}
+		catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	@Test
+	public void test3()
+	{
+		createFile("a", "1");
+		createFile("nest1/a", "2");
+		createFile("nest1/nest2/nest3/nest4/a", "3");
+		Gitlet gitlet = new Gitlet();
+		gitlet.add("a");
+		gitlet.commit("first a");
+		gitlet.add("nest1/a");
+		gitlet.add("nest1/nest2/nest3/nest4/a");
+		gitlet.commit("nest1 nest4 a");
+		assertTrue(new File(".gitlet/commits/2/nest1/a").exists());
+		writeFile("a", "changed no nest");
+		writeFile("nest1/a", "changed nest 1");
+		writeFile("nest1/nest2/nest3/nest4/a", "changed nest 4");
+		gitlet.add("a");
+		gitlet.add("nest1/a");
+		gitlet.add("nest1/nest2/nest3/nest4/a");
+		gitlet.commit("changed everything");
+		try
+		{
+			gitlet.checkout("2", "a");
+			gitlet.checkout("2", "nest1/a");
+			gitlet.checkout("2", "nest1/nest2/nest3/nest4/a");
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+		assertEquals("1", getText("a"));
+		assertEquals("2", getText("nest1/a"));
+		assertEquals("3", getText("nest1/nest2/nest3/nest4/a"));
+	}
+
+	@Test
+	public void testMerge() throws IOException
+	{
+		gitletFast("init");
+		createFile("a", "1");
+		createFile("nest1/a", "2");
+		createFile("nest1/nest2/nest3/nest4/a", "3");
+		gitletFast("branch", "branch");
+		gitletFast("add", "a");
+		gitletFast("add", "nest1/a");
+		gitletFast("commit", "commit 1");
+		gitletFast("checkout", "branch");
+		writeFile("a", "changed a");
+		gitletFast("add", "a");
+		gitletFast("add", "nest1/nest2/nest3/nest4/a");
+		gitletFast("commit", "commit 2");
+		gitletFast("merge", "master");
+		gitletFast("commit", "commit3");
+		assertTrue(new File(".gitlet/commits/3/nest1/a").exists());
+		assertTrue(new File(".gitlet/commits/3/a.conflicting").exists());
+		assertEquals("1", getText(".gitlet/commits/3/a.conflicting"));
+	}
+
+	public void testRebase() throws IOException
+	{
+		gitletFast("init");
+		createFile("a", "1");
+		createFile("nest1/a", "2");
+		createFile("nest1/nest2/nest3/nest4/a", "3");
+		createFile("b", "4");
+		gitletFast("branch", "branch");
+		gitletFast("add", "a");
+		gitletFast("add", "b");
+		gitletFast("commit", "commit 1 master");
+		gitletFast("add", "nest1/a");
+		gitletFast("commit", "commit 2 master");
+		gitletFast("checkout", "branch");
+		writeFile("nest1/a", "changed nest 1");
+		gitletFast("add", "nest1/a");
+		gitletFast("commit", "commit 1 branch");
+		writeFile("a", "changed a");
+		gitletFast("add", "nest1/nest2/nest3/nest4/a");
+		gitletFast("commit", "commit 2 branch");
+		gitletFast("add", "nest1/a");
+		gitletFast("commit", "commit 3 branch");
+		gitletFast("rebase", "master");
+	}
+	@Test
+	public void testRebase2() throws IOException
+	{
+		gitletFast("init");
+		String firstCommit = "commit 1";
+		String commitText = "This is the first commit";
+		String commitFileName = "first_commit.txt";
+		createFile(commitFileName, commitText);
+		String randomFile = "random.txt";
+		createFile(randomFile, "this is random");
+		gitletFast("add", randomFile);
+		gitletFast("add", commitFileName);
+		gitletFast("commit", firstCommit);
+
+		assertEquals("", gitletFast("branch", "branch"));
+
+		writeFile(commitFileName, "first commit revised");
+		gitletFast("add", commitFileName);
+
+		gitletFast("commit", "commit 2 text modified and random added");
+
+		assertEquals("", gitletFast("checkout", "branch"));
+
+		String thirdCommit = "commit 3";
+		String commit3Text = "This is the third commit";
+		String commit3FileName = "third_commit.txt";
+		createFile(commit3FileName, commit3Text);
+
+		gitletFast("add", commit3FileName);
+		gitletFast("commit", thirdCommit);
+
+		String randomFile2 = "random2.txt";
+		createFile(randomFile2, "this is random #2");
+		gitletFast("add", randomFile2);
+		gitletFast("commit", "commit# 4 random2.txt added");
+
+		assertEquals("", gitletFast("rebase", "master"));
+		assertTrue(new File(COMMIT_DIR, "5/third_commit.txt").exists());
+	}
+	@Test
+	public void testRemove() throws IOException{
+		String fileName = TESTING_DIR + "test.txt";
+		String testFile = "Hello world, testing Gitlet";
+		createFile(fileName, testFile);
+		gitletFast("init");
+		
+		outContent.reset();
+		gitletFast("rm", "test.txt");
+		assertEquals(outContent.toString().trim(), "No reason to remove the file.");
+		
+		File f = new File(GITLET_DIR + "staging/" + fileName);
+		gitletFast("add", fileName);
+		assertTrue(f.exists());
+		gitletFast("rm", fileName);
+		assertFalse(f.exists());
+		gitletFast("add", fileName);
+		gitletFast("commit", "added test.txt");
+		f = new File(GITLET_DIR + "commits/1/test_files/test.txt");
+		assertTrue(f.exists());
+		gitletFast("rm", fileName);
+		gitletFast("commit", "removed test.txt");
+		File commit2 = new File(GITLET_DIR + "commits/2");
+		assertEquals(commit2.listFiles().length, 0);
+		assertTrue(f.exists());
 	}
 	
 	/**
