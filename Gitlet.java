@@ -641,6 +641,9 @@ public class Gitlet implements Serializable {
 			gitlet = (Gitlet) in.readObject();
 			in.close();
 			fileIn.close();
+		} catch (Exception e) {
+		}
+		try {
 			if (args.length == 0)
 				System.out.println("Please enter a command.");
 			else if (args[0].equals("commit")) {
@@ -687,6 +690,7 @@ public class Gitlet implements Serializable {
 			out.writeObject(gitlet);
 			out.close();
 			fileOut.close();
-		} catch (Exception e) {}
+		} catch (Exception e) {
+		}
 	}
 }
